@@ -324,7 +324,7 @@
  	
 	<script type="text/javascript"> 
 		var gl;
-		var mQuadVBO = null;
+		var vexterBuffer = null;
  
 		function initGL(canvas) {
 			try {
@@ -334,9 +334,8 @@
  
 				var vertices = new Float32Array([ -1., -1.,   1., -1.,    -1.,  1.,     1., -1.,    1.,  1.,    -1.,  1.]);
  
-				mQuadVBO = gl.createBuffer();
-				gl.bindBuffer(gl.ARRAY_BUFFER, mQuadVBO);
-				gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+				vertexBuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
  
 			} catch(e) { }
 			if (!gl) {
@@ -515,6 +514,22 @@
 		var beat = 0;
  
 		var fadecounter = 0;
+
+		function getVertices(z) {
+			return new Float32Array([
+				0.0, 2.15-z, 4.0,
+				-3.0, 2.15-z, 4.0,
+				-3.0, -3.0+z, 4.0,
+
+				-3.0, -3.0+z, 4.0,
+				3.0, -3.0+z, 4.0,
+				0.0, 2.15-z, 4.0,
+
+				0.0, 2.15-z, 4.0,
+				3.0, 2.15-z, 4.0,
+				3.0, -3.0+z, 4.0
+			]);
+		}
  
 		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride) {
  
@@ -551,24 +566,7 @@
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
  		
-			var vertexBuffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
- 		
-			var vertices = new Float32Array([
-				0.0, 2.15-z, 4.0,
-				-3.0, 2.15-z, 4.0,
-				-3.0, -3.0+z, 4.0,
- 
-				-3.0, -3.0+z, 4.0,
-				3.0, -3.0+z, 4.0,
-				0.0, 2.15-z, 4.0,
- 
-				0.0, 2.15-z, 4.0,
-				3.0, 2.15-z, 4.0,
-				3.0, -3.0+z, 4.0
-			]);
- 
-			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
 			var aspectRatio = gl.viewportWidth / gl.viewportHeight;
@@ -642,7 +640,6 @@
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
  		
-			var vertexBuffer = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
  		
 			var vertices = new Float32Array([
@@ -748,8 +745,8 @@
 
 			effects.push(" 									\
 				gl.enable(gl.BLEND); 							\
-			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
-				visystyle_scene(shaderProgram_blurspacescene, spaceTexture,0.01); 	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
+				visystyle_scene(shaderProgram_analogscene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
 				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
