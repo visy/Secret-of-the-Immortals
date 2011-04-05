@@ -737,7 +737,11 @@
 			effects.push(" 									\
 				gl.enable(gl.BLEND); 							\
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
+				visystyle_scene(shaderProgram_avaruusscene, spaceTexture,1.01); \
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
 				visystyle_scene(shaderProgram_fractalscene, spaceTexture,0.01); 	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);				\
+				if (ptimer > 61700) visystyle_scene(shaderProgram_analogscene, spaceTexture, 0.01, 1.00, time-part_start_time);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
@@ -747,21 +751,10 @@
 													\
 			");									
 			effects.push(39600);
-			effects.push(61700);
+			effects.push(120000);
 
-			effects.push(" 									\
-				gl.enable(gl.BLEND); 							\
-			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
-				visystyle_scene(shaderProgram_fractalscene, spaceTexture,0.01); 	\
-			gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_DST_COLOR);				\
-				visystyle_scene(shaderProgram_analogscene, spaceTexture, 0.01);	\
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
-			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
-													\
-			");									
-			effects.push(61700);
+			effects.push("endDemo()");
+			effects.push(120000);
 			effects.push(10000000);
  
 			// end demo
