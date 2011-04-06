@@ -781,6 +781,10 @@
 			if (AudioPlayer) {
 				var ptimer = parseInt(AudioPlayer.getPosition());
 				var frame_start_msec = 0;
+
+				frame_start_msec = (new Date().getTime());
+				time = (frame_start_msec - demo_start_time - part_start_time);
+	
 				
 				if (ptimer > beat_target) {
 					beat_target = beat_target + beat_time;
@@ -802,9 +806,6 @@
 				document.getElementById('posSuffix').textContent = "";
 				
  
-				frame_start_msec = (new Date().getTime());
-				time = (frame_start_msec - demo_start_time - part_start_time);
-	
 				var timefromstart = (new Date().getTime() - demo_start_time);
  
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -820,6 +821,7 @@
 					beat_runner = 0;
 				}
 				
+				gl.finish();
 		
 				timedelta = (new Date().getTime()-frame_start_msec);
 				timefromlast = (new Date().getTime() - part_start_time);
@@ -840,7 +842,7 @@
 			date = new Date();
 			demo_start_time = date.getTime();
  
-			setInterval(drawScene,3);
+			setInterval(drawScene,33);
 	  	}
 	</script> 
 	<script type="text/javascript"> 
