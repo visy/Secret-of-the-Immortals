@@ -17,6 +17,7 @@
  		
 		uniform float time;
 		uniform float beat;
+		uniform float beat_runner;
 		uniform float width;
 		uniform float height;
 		uniform sampler2D s2d;
@@ -64,7 +65,7 @@
 				p3 = vec2(p.x * p.x * p.y - p.y, cos(myTime*0.25)*0.03+2.0 * p2.x * p2.y) + c;
  
 
-				if (length(p) > (1.8+cos((float(n/2)+p.y*cos(myTime*0.6)*30.0*p.x)+cos(myTime*0.4))*0.30))
+				if (length(p) > (1.8+cos((float(n/2)+p.y*cos(myTime*0.6)*30.0+beat_runner*p.x)+cos(myTime*0.4))*0.30))
 				{
 					vec4 cc = vec4(0.0,0.0,0.0,0.0);
 
@@ -520,6 +521,7 @@
 		var beat_time = 618.55670; // 97bpm
 		var beat_target = beat_time;
 		var beat_counter = 0;
+		var beat_runner = 0;
  
 		var fadecounter = 0;
 
@@ -553,6 +555,7 @@
 			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
 			shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
 			shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
+			shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
 			shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
  
  
@@ -568,6 +571,7 @@
 			else
 				gl.uniform1f(shaderProgram.timeUniform, time);
 			gl.uniform1f(shaderProgram.beatUniform, beat);
+			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
  
@@ -755,10 +759,10 @@
 													\
 			");									
 			effects.push(39600);
-			effects.push(120000);
+			effects.push(170000);
 
 			effects.push("endDemo()");
-			effects.push(120000);
+			effects.push(170000);
 			effects.push(10000000);
  
 			// end demo
@@ -789,12 +793,17 @@
 				beat = beat - timedelta*beatfade;
 				if (beat < 0.0) beat = 0;
 
-				document.getElementById('posValue').textContent = ptimer + " / " + "beat: " + beat;
+				beat_runner_add = beat;
+
+				if (beat_runner_add < 0) beat_runner_add = 0;
+				beat_runner = beat_runner + (timedelta*beatfade*0.07)*beat;
+
+				document.getElementById('posValue').textContent = ptimer + " / " + "beat: " + beat + " beat_runner:" + beat_runner + " timedelta: " + timedelta;
 				document.getElementById('posSuffix').textContent = "";
 				
  
-				time = (new Date().getTime() - demo_start_time - part_start_time);
-				frame_start_msec = time;
+				frame_start_msec = (new Date().getTime());
+				time = (frame_start_msec - demo_start_time - part_start_time);
 	
 				var timefromstart = (new Date().getTime() - demo_start_time);
  
@@ -808,10 +817,11 @@
 					effect_pointer+=3;
 					part_start_time = ptimer;
 					timefromlast = (new Date().getTime() - part_start_time);
+					beat_runner = 0;
 				}
 				
-				timedelta = (new Date().getTime() - demo_start_time - part_start_time)-frame_start_msec;
 		
+				timedelta = (new Date().getTime()-frame_start_msec);
 				timefromlast = (new Date().getTime() - part_start_time);
 			}
 			
