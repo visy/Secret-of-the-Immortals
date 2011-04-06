@@ -48,8 +48,8 @@
 			float oy;
 			oy = c.y;
 			
-			float zoom = myTime*0.1;
-			float zoomy = 40.0+abs(sin(zoom)*250.0);
+			float zoom = myTime*0.07;
+			float zoomy = 40.0+abs(sin(zoom)*850.0);
 			
 			c *= 10.0 / zoomy;
 			c.x -= 1.44947+(sin(myTime*0.4)*0.002);
@@ -241,19 +241,20 @@
 			resolution.y = height;
  
 			float myTime = time * 0.0001;
+			float myBeat = beat*0.02;
 				
 			vec2 p = (1.0*gl_FragCoord.xy-resolution)/resolution.y;
  
 			p.x = p.x+cos(myTime*0.6)*resolution.x/200.0;
 			p.y = p.y+sin(myTime*0.4)*resolution.y/200.0;
  
-			float r = cos(1.0-beat*0.8)*atan((p.y+1.0*beat)*(2500.0+myTime+(cos(beat*p.x*2.6)*(beat*0.1)))*10.0);
-			float g = sin(1.0-beat*0.9)*atan((p.x+2.0*beat)*(2500.0+myTime+(sin(beat*p.x*3.5)*(beat*0.2)))*9.0);
-			float b = sin(1.0-beat*1.0)*atan((p.y+3.0*beat)*(2500.0+myTime+(cos(beat*p.y*4.4)*(beat*0.3)))*8.0);
+			float r = cos(1.0-myBeat*0.8)*atan((p.y+1.0*myBeat)*(2500.0+myTime+(cos(myBeat*p.x*2.6)*(myBeat*0.1)))*10.0);
+			float g = sin(1.0-myBeat*0.9)*atan((p.x+2.0*myBeat)*(2500.0+myTime+(sin(myBeat*p.x*3.5)*(myBeat*0.2)))*9.0);
+			float b = sin(1.0-myBeat*1.0)*atan((p.y+3.0*myBeat)*(2500.0+myTime+(cos(myBeat*p.y*4.4)*(myBeat*0.3)))*8.0);
  
-			float of = an(tan(p.y*myTime+beat)+cos(p.x*myTime-beat*r)*cos(beat*tan(g*p.x*cos(beat*1.0+myTime*10.0)*b*p.y)) * cos(r+beat*atan(p.y*myTime*3.0)+p.x*myTime*4.0));
+			float of = an(tan(p.y*myTime+myBeat)+cos(p.x*myTime-myBeat*r)*cos(myBeat*tan(g*p.x*cos(myBeat*1.0+myTime*10.0)*b*p.y)) * cos(r+myBeat*atan(p.y*myTime*3.0)+p.x*myTime*4.0));
  
-			float of2 = an((p.x*cos(p.x+p.y*myTime*0.8)*tan(p.x*myTime)*p.y) * (sin(p.x*myTime*0.8*cos(p.y*myTime*p.x)*beat)*sin(p.y*cos(p.x*myTime*beat)*p.y*beat))*(2.0*beat)*p.y);
+			float of2 = an((p.x*cos(p.x+p.y*myTime*0.8)*tan(p.x*myTime)*p.y) * (sin(p.x*myTime*0.8*cos(p.y*myTime*p.x)*myBeat)*sin(p.y*cos(p.x*myTime*myBeat)*p.y*myBeat))*(2.0*myBeat)*p.y);
  
 			gl_FragColor = vec4(
 					(r*of*of2)*of2,
@@ -516,6 +517,9 @@
 	  	var time = 0;
 		var low = 0; 
 		var beat = 0;
+		var beat_time = 618.55670; // 97bpm
+		var beat_target = beat_time;
+		var beat_counter = 0;
  
 		var fadecounter = 0;
 
@@ -765,16 +769,33 @@
 		}
  
 		var effect_pointer = 0;
- 
+		var hitting = 0;
+		var timedelta = 0;
+		var beatfade = 0.01;
+
 	  	function drawScene() {
 			if (AudioPlayer) {
 				var ptimer = parseInt(AudioPlayer.getPosition());
-				document.getElementById('posValue').textContent = ptimer;
+				var frame_start_msec = 0;
 				
-				low = AudioPlayer.getAverageFFT(0, 50);
-				beat = low*5;
+				if (ptimer > beat_target) {
+					beat_target = beat_target + beat_time;
+					beat_counter = beat_counter + 1;
+					hitting = 0;
+				}
+
+				if ((beat_counter % 2) == 1 && hitting == 0) { beat = beat = 5.5; hitting = 1; }
+				
+				beat = beat - timedelta*beatfade;
+				if (beat < 0.0) beat = 0;
+
+				document.getElementById('posValue').textContent = ptimer + " / " + "beat: " + beat;
+				document.getElementById('posSuffix').textContent = "";
+				
  
 				time = (new Date().getTime() - demo_start_time - part_start_time);
+				frame_start_msec = time;
+	
 				var timefromstart = (new Date().getTime() - demo_start_time);
  
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -789,6 +810,8 @@
 					timefromlast = (new Date().getTime() - part_start_time);
 				}
 				
+				timedelta = (new Date().getTime() - demo_start_time - part_start_time)-frame_start_msec;
+		
 				timefromlast = (new Date().getTime() - part_start_time);
 			}
 			
