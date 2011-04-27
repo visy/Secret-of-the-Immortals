@@ -8,6 +8,38 @@
  
 <!-- fragment shader effects for fullscreen quad scenes !--> 
 
+	<script id="shaderfs_fsscene" type="x-shader/x-fragment"> 
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float alpha;
+ 	
+		void main(void)
+		{
+			vec2 resolution;
+			
+			resolution.x = width;
+			resolution.y = height;
+ 
+			vec2 c, c2;
+			
+			c = (gl_FragCoord.xy / resolution.xy);
+			
+			vec4 d = texture2D(s2d, c);
+
+			gl_FragColor = vec4(d.r, d.g, d.b, alpha);
+ 
+		}
+			
+	</script> 
+
 	<script id="shaderfs_fractalscene" type="x-shader/x-fragment">
 		precision highp float;
 		precision highp vec3;
@@ -73,7 +105,7 @@
 					cc -= vec4(1.0-cos(float(n*18)*0.1)*0.2*cos(p3.x*0.02+float(n)), cos(float(n*10)*0.2)*sin(p3.y*0.002+float(n))*0.2, cos(float(n*1)*cos(p3.x)*0.1), 0.0) - (sin(float(n*2)*2.1+myTime*1.3*p3.x) + 0.2+float(n/3)*0.05);
 
 
-					gl_FragColor=(vec4(cc.r,cc.r,cc.r,cc.g)+vec4(cc.r,cc.g,cc.b,cc.a)-vec4(cc.b,cc.b,cc.b,1.0));
+					if (cc.r > 0.1) gl_FragColor=(vec4(cc.r,cc.r,cc.r,cc.g)+vec4(cc.r,cc.g,cc.b,cc.a)-vec4(cc.b,cc.b,cc.b,1.0));
 
 					break;
 				}
@@ -107,11 +139,11 @@
 			float c2 = sin(c1+p.y*0.002+p.x*0.003+myTime*0.7)*sin(p.x*0.01-myTime*0.8)*0.6;
 			float c3 = cos(c2+p.x*0.002+p.y*0.001+myTime*0.5)*atan(p.y*0.001-myTime*0.9)*0.4;
  
-			vec4 collyvec = vec4(c1*c3,c3*c2,c3*c2,0.3)-vec4(c1-c3,c3*c1,c2*c1,0.2)*vec4(c3,c1,c3,0.6);
+			vec4 collyvec = vec4(c1*c3,c3*c2,c3*c2,0.3)-vec4(c1-c3,c3*c1,c2*c1,0.2)*vec4(c3,c1,c3,0.1);
  
  
 			float c = cos((p.x*0.001)+myTime*10.0)*0.3;
-			vec4 vignette = vec4(c,c,c,abs(cos(myTime*0.3)*0.9));
+			vec4 vignette = vec4(c,c,c,abs(cos(myTime*0.3)*0.1));
  
 			gl_FragColor = ((collyvec) * vignette);
 		}
@@ -352,8 +384,8 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 512;
-			rttFramebuffer.height = 512;
+			rttFramebuffer.width = 1024;
+			rttFramebuffer.height = 1024;
 
 			rttTexture = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
@@ -414,6 +446,7 @@
 	    	return shader;
 	  	}
  		
+	  	var shaderProgram_fsscene;
 	  	var shaderProgram_avaruusscene;
 	  	var shaderProgram_blurspacescene;
 	  	var shaderProgram_analogscene;
@@ -433,6 +466,7 @@
 		}
  
 	  	function initShaders() {
+			var fragmentShader_fsscene = getShader(gl, "shaderfs_fsscene");
 			var fragmentShader_avaruusscene = getShader(gl, "shaderfs_avaruusscene");
 			var fragmentShader_blurspacescene = getShader(gl, "shaderfs_blurspacescene");
 			var fragmentShader_analogscene = getShader(gl, "shaderfs_analogscene");
@@ -442,6 +476,7 @@
  
 			var vertexShader_fsquad = getShader(gl, "shadervs_fsquad");
  
+			shaderProgram_fsscene = gl.createProgram();
 			shaderProgram_avaruusscene = gl.createProgram();
 			shaderProgram_blurspacescene = gl.createProgram();
 			shaderProgram_analogscene = gl.createProgram();
@@ -449,6 +484,7 @@
 			shaderProgram_letterscene = gl.createProgram();
 			shaderProgram_fractalscene = gl.createProgram();
 	
+			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_blurspacescene, fragmentShader_blurspacescene, vertexShader_fsquad);	
 			linkshader(shaderProgram_analogscene, fragmentShader_analogscene, vertexShader_fsquad);	
@@ -574,9 +610,11 @@
 			]);
 		}
  
-		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride, w,h) {
+		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
  
-			if (!alpha) alpha = 1.0; 
+			if (!alpha) alpha = 1.0;
+
+			if (!xoff) xoff = 0.0;
 
 			if (w) { scw = w; sch = h; }
 			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
@@ -614,7 +652,7 @@
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
  		
-			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z+xoff), gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
 			var aspectRatio = scw / sch;
@@ -629,7 +667,7 @@
 			var b = (top + bottom) / (top - bottom);
 			var c = (farPlane + nearPlane) / (farPlane - nearPlane);
 			var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
-			var x = (2 * nearPlane) / (right - left);
+			var x = (2 * nearPlane) / (right - left)+xoff;
 			var y = (2 * nearPlane) / (top - bottom);
 			var perspectiveMatrix = [
 				x, 0, a, 0,
@@ -851,8 +889,16 @@
 				
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-				gl.clearColor(0.0, 0.0, 0.0, 0.4);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		
+				var j = 0.0;
+
+
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR);	
+				for (j=0.0;j<8.0;j+=2.00)
+					visystyle_scene(shaderProgram_fsscene, rttTexture,Math.cos(time*0.0001+j)*0.1, (1.0+Math.sin(time*0.001)*0.1), timefromstart, rttFramebuffer.width, rttFramebuffer.height, Math.cos(j*0.001+time*0.01)*0.1);
+			
+			
  
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2])
 					eval(effects[effect_pointer]);
@@ -862,7 +908,7 @@
 					timefromlast = (new Date().getTime() - part_start_time);
 					beat_runner = 0;
 				}
-			
+
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
 				gl.bindTexture(gl.TEXTURE_2D, null);
@@ -873,7 +919,7 @@
 				gl.clearColor(0.0, 0.0, 0.0, 0.4);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 
-				visystyle_scene(shaderProgram_avaruusscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
+				visystyle_scene(shaderProgram_fsscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
 
 				gl.finish();
 		
