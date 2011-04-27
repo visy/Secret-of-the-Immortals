@@ -385,7 +385,7 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 512*2;
+			rttFramebuffer.width = 512;
 			rttFramebuffer.height = 512;
 
 			rttTexture = gl.createTexture();
@@ -650,10 +650,7 @@
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
  
-			gl.enable(gl.DEPTH_TEST);
-			gl.depthFunc(gl.LEQUAL);
- 		
-			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z+xoff), gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
 			var aspectRatio = scw / sch;
@@ -668,7 +665,7 @@
 			var b = (top + bottom) / (top - bottom);
 			var c = (farPlane + nearPlane) / (farPlane - nearPlane);
 			var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
-			var x = (2 * nearPlane) / (right - left)+xoff;
+			var x = (2 * nearPlane) / (right - left);
 			var y = (2 * nearPlane) / (top - bottom);
 			var perspectiveMatrix = [
 				x, 0, a, 0,
@@ -694,10 +691,6 @@
 			gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
  	
 			gl.drawArrays(gl.TRIANGLES, 0, 9);
-
-			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
-			gl.generateMipmap(gl.TEXTURE_2D);
-			gl.bindTexture(gl.TEXTURE_2D, null);
 
 	  	}
 		
@@ -891,16 +884,6 @@
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
 		
-				var j = 0.0;
-
-
-				gl.enable(gl.BLEND);
-				gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR);	
-				for (j=0.0;j<8.0;j+=2.00)
-					visystyle_scene(shaderProgram_fsscene, rttTexture,Math.cos(time*0.0001+j)*0.1, (1.0+Math.sin(time*0.001)*0.1), timefromstart, rttFramebuffer.width, rttFramebuffer.height, Math.cos(j*0.001+time*0.01)*0.1);
-			
-			
- 
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2])
 					eval(effects[effect_pointer]);
 				else {
@@ -910,10 +893,18 @@
 					beat_runner = 0;
 				}
 
+
+				var j = Math.abs(Math.cos(time*0.0001+beat_runner*0.1)*0.4)-0.4;	
+				var mw = rttFramebuffer.width/(j+1);	
+				var mh = rttFramebuffer.height/(j+1);	
+
+				gl.viewport(0, 0, mw, mh);
+				visystyle_scene(shaderProgram_fsscene, rttTexture,-0.1, 0.8, timefromstart, mw, mh,0.0);
+	
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
 				gl.bindTexture(gl.TEXTURE_2D, null);
-	
+
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
