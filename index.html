@@ -88,7 +88,7 @@
 			c.x -= 1.44947+(sin(myTime*0.5)*0.002);
 			c.y += 0.0014897+(cos(myTime*0.6)*0.0001);
  
-			for (int n = 100; n > 5; n-=5)
+			for (int n = 100; n > 5; n-=3)
 			{
 				p2 = p;	
 				
@@ -123,6 +123,7 @@
 		uniform float height;
 		uniform sampler2D s2d;
 		uniform float beat;
+		uniform float beat_runner;
  	
 		void main(void) {
 	
@@ -130,7 +131,7 @@
 			resolution.x = width;
 			resolution.y = height;
  
-			float myTime = time * 0.0002;
+			float myTime = time * 0.0002 + beat_runner*0.3; 
  
 			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
  
@@ -170,7 +171,7 @@
 			float myTime = time * 0.0004;
  
  
-			vec2 p = -resolution.xy + 2.0 * gl_FragCoord.xy / resolution.xy * resolution.xy;
+			vec2 p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*3.0;
  
 			// avaruuseffu
 			p.x = p.x + myTime*0.9*sin(myTime*0.1)*600.0;
@@ -319,7 +320,7 @@
  
 			float myTime = time * 0.0002;
  
-			p = -resolution.xy + 2.0 * gl_FragCoord.xy / resolution.xy * resolution.xy;
+			p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*10.0;
  
 			float x = cos(p.y*0.04+p.x)*0.01+myTime*0.09+(p.x*0.0006);
 			float y = myTime*0.09+(0.1-gl_FragCoord.y*0.0006*2.03)*cos(myTime+p.y*(cos(myTime*0.4)*0.0025))*1.0; 
@@ -384,8 +385,8 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 1024;
-			rttFramebuffer.height = 1024;
+			rttFramebuffer.width = 512*2;
+			rttFramebuffer.height = 512;
 
 			rttTexture = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
