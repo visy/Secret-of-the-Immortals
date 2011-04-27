@@ -328,7 +328,9 @@
  	
 	<script type="text/javascript"> 
 		var gl;
-		var vexterBuffer = null;
+		var vertexBuffer;
+		var rttFramebuffer;
+		var rttTexture = null;
  
 		function initGL(canvas) {
 			try {
@@ -346,8 +348,38 @@
 				alert("Bilotrip DarumaGL systems failure. Init failed.");
 			}
 		}
+
+		function initFramebuffer() {
+			rttFramebuffer = gl.createFramebuffer();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+			rttFramebuffer.width = 512;
+			rttFramebuffer.height = 512;
+
+			rttTexture = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+			gl.generateMipmap(gl.TEXTURE_2D);
+
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, rttFramebuffer.width, rttFramebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+			var renderbuffer = gl.createRenderbuffer();
+			gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, rttFramebuffer.width, rttFramebuffer.height);
+
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		}
+
  	
 	  	function getShader(gl, id) {
+
 	    	var shaderScript = document.getElementById(id);
 	    	if (!shaderScript) {
 	      		return null;
@@ -542,9 +574,12 @@
 			]);
 		}
  
-		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride) {
+		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride, w,h) {
  
 			if (!alpha) alpha = 1.0; 
+
+			if (w) { scw = w; sch = h; }
+			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
 
 			gl.useProgram(shaderProgram);
  
@@ -564,8 +599,8 @@
 			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
 			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 0);
  
-			gl.uniform1f(shaderProgram.widthUniform, gl.viewportWidth);
-			gl.uniform1f(shaderProgram.heightUniform, gl.viewportHeight);	
+			gl.uniform1f(shaderProgram.widthUniform, scw);
+			gl.uniform1f(shaderProgram.heightUniform, sch);	
  
 			if (timeoverride) 
 				gl.uniform1f(shaderProgram.timeUniform, timeoverride);
@@ -582,7 +617,7 @@
 			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
-			var aspectRatio = gl.viewportWidth / gl.viewportHeight;
+			var aspectRatio = scw / sch;
 			var nearPlane = 1.0;
 			var farPlane = 10000.0;
 			var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
@@ -620,6 +655,11 @@
 			gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
  	
 			gl.drawArrays(gl.TRIANGLES, 0, 9);
+
+			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+			gl.generateMipmap(gl.TEXTURE_2D);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+
 	  	}
 		
 		function letters_scene(shaderProgram, currentTexture, z, alpha) {
@@ -642,8 +682,8 @@
 			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
 			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 0);
  
-			gl.uniform1f(shaderProgram.widthUniform, gl.viewportWidth);
-			gl.uniform1f(shaderProgram.heightUniform, gl.viewportHeight);	
+			gl.uniform1f(shaderProgram.widthUniform, rttFramebuffer.width);
+			gl.uniform1f(shaderProgram.heightUniform, rttFramebuffer.height);	
  
 			gl.uniform1f(shaderProgram.timeUniform, time);
 			gl.uniform1f(shaderProgram.beatUniform, beat);
@@ -672,7 +712,7 @@
 			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
-			var aspectRatio = gl.viewportWidth / gl.viewportHeight;
+			var aspectRatio = rttFramebuffer.width / rttFramebuffer.height;
 			var nearPlane = 1.0;
 			var farPlane = 10000.0;
 			var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
@@ -808,10 +848,11 @@
 				
  
 				var timefromstart = (new Date().getTime() - demo_start_time);
- 
-				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+				
+				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
 				gl.clearColor(0.0, 0.0, 0.0, 0.4);
-				gl.clear(gl.DEPTH_BUFFER_BIT);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
  
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2])
 					eval(effects[effect_pointer]);
@@ -821,7 +862,19 @@
 					timefromlast = (new Date().getTime() - part_start_time);
 					beat_runner = 0;
 				}
-				
+			
+				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+				gl.generateMipmap(gl.TEXTURE_2D);
+				gl.bindTexture(gl.TEXTURE_2D, null);
+	
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+				gl.clearColor(0.0, 0.0, 0.0, 0.4);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+
+				visystyle_scene(shaderProgram_avaruusscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
+
 				gl.finish();
 		
 				timedelta = (new Date().getTime()-frame_start_msec);
@@ -835,7 +888,7 @@
 			var canvas = document.getElementById("bilocanvas");
  
 			initGL(canvas);
- 
+			initFramebuffer();
 			initShaders();
 			initTextures();
 			initEffects();	
