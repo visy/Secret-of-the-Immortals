@@ -82,7 +82,7 @@
 			oy = c.y;
 			
 			float zoom = myTime*0.05;
-			float zoomy = zoom*1.0+40.0+abs(sin(zoom)*850.0);
+			float zoomy = zoom*1.0+40.0+abs(sin(zoom)*850.0)+beat_runner*10.0;
 			
 			c *= 10.0 / zoomy;
 			c.x -= 1.44947+(sin(myTime*0.5)*0.002);
@@ -97,7 +97,7 @@
 				p3 = vec2(p.x * p.x * p.y - p.y, cos(myTime*0.25)*0.03+2.0 * p2.x * p2.y) + c;
  
 
-				if (length(p) > (1.8+cos((float(n/2)+p.y*(cos(beat_runner*0.5)*8.0+c.y+p.x)*p.x)+cos(myTime*0.4))*0.30))
+				if (length(p) > (1.8+cos((float(n/2)+p.y*(cos(beat_runner*0.5)*8.0+c.y+p.x)*p.x)+cos(beat_runner*0.3+myTime*0.4))*0.30))
 				{
 					vec4 cc = vec4(0.0,0.0,0.0,0.0);
 
@@ -131,9 +131,9 @@
 			resolution.x = width;
 			resolution.y = height;
  
-			float myTime = time * 0.0002 + beat_runner*0.3; 
+			float myTime = time * 0.0002 + beat_runner*0.1; 
  
-			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
+			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01+beat_runner*0.3)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
  
  
 			float c1 = atan(p.x*0.1+p.y*0.2+myTime*0.7)*cos(p.y*myTime*0.85)*0.6;
