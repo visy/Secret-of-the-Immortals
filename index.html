@@ -7,6 +7,251 @@
  
  
 <!-- fragment shader effects for fullscreen quad scenes !--> 
+	<script id="shaderfs_mankeliscene" type="x-shader/x-fragment"> 
+ 
+#ifdef GL_ES
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 
+#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float beat;
+		uniform float beat_runner;
+
+		varying vec2 pixpos;
+ 
+		int objid;
+		
+		vec3 ball1,ball2,ball3;
+ 	
+ 		float fuckfunk(vec3 pos)
+ 		{
+ 		
+				float myTime = time * 0.0007;
+
+ 				float distball = sqrt(dot(pos, pos)) - 1.4;
+ 				float dbo = distball;
+ 				
+				float loaddone = 0.66-cos(beat_runner*1.0)*0.2;
+
+ 				distball -= sin(pos.y * 4.0 + beat_runner * 4.0) * cos(myTime*1.0*pos.x)*2.2 * clamp((beat_runner-0.4)*1.6,0.0,1.0);
+				
+				distball += texture2D(s2d, pos.xy * vec2(0.5, 1.0) + vec2(0.2, 0.4) * pos.z).r * 0.1;
+				//distball += textureCube(s2d, pos.xyz).r * 0.1;
+ 
+				float bs = 2.0;
+				float bsy = 0.4;
+				float bof = 2.6 - pow(2.7, -loaddone * 3.0) * 1.6;
+ 
+				float mixrat = sin(  clamp(loaddone - 0.7,0.0,0.3) *(3.14159/0.3));
+ 
+
+				float a = pos.y * mixrat;
+				mat2 r = mat2(1);
+        			r[0][0] = cos(a);
+        			r[1][0] = sin(a);
+        			r[0][1] = -sin(a);
+        			r[1][1] = cos(a);
+        			vec3 pos2 = pos;
+        			pos2.xz = r * pos.xz;
+ 
+				pos2.y -= bof;
+				float distbox1 = max(max(abs(pos2.x) - bs, abs(pos2.y) - bsy), abs(pos2.z) - bs);
+				distbox1 += texture2D(s2d, pos2.xy).r * 0.1;
+ 
+				pos2.y += 2.0*bof;
+				float distbox2 = max(max(abs(pos2.x) - bs, abs(pos2.y) - bsy), abs(pos2.z) - bs);
+				//distbox2 += textureCube(s2d, pos2.xyz).r * 0.1;
+ 
+				float distbox = min(distbox1, distbox2);
+ 
+				
+				pos2 = pos - vec3(0.0, bof - bsy, 0.0);
+ 				float distball1 = sqrt(dot(pos2, pos2)) - 1.4;
+ 				
+				pos2 = pos + vec3(0.0, bof - bsy, 0.0);
+ 				float distball2 = sqrt(dot(pos2, pos2)) - 1.4;
+				
+				float distballcut = -min(distball1, distball2);
+ 
+				objid = 0;
+ 
+				//float rdist = max(distbox, distballcut);
+ 
+				//float mixrat = clamp((loaddone - 0.7)*3.333, 0.0, 1.0);
+				//distballcut = mix(distballcut, -10.0, mixrat);
+				
+				float rdist = distbox;
+ 
+ 
+//				rdist -= mix(0.0, sin(pos.y * 5.0 + myTime * 10.0), mixrat);
+ 
+				if (distballcut > rdist)
+				{
+					objid = 2;
+					rdist = distballcut;
+				}
+				
+//				rdist = mix(rdist, distbox3, mixrat);
+ 
+ 
+ 
+				if (distball < rdist)
+				{
+					objid = 1;
+					rdist = distball;
+				}
+				
+				
+ 
+		
+				return rdist;
+ 		}
+ 
+		void main(void) {
+		
+			float myTime = time * 0.0001;
+		
+			vec3 pos = vec3(0.0, 0.0, -10.0);
+			vec3 dir = normalize(vec3(pixpos, 2.0));
+/*
+			float a2 = myTime * 0.43;
+			mat3 r2 = mat3(1);
+        		r2[1][1] = cos(a2);
+        		r2[2][1] = sin(a2);
+        		r2[1][2] = -sin(a2);
+        		r2[2][2] = cos(a2);
+        		pos = r2 * pos;
+        		dir = r2 * dir;
+*/
+			float a = myTime;
+			mat3 r = mat3(1);
+        		r[0][0] = cos(a);
+        		r[2][0] = sin(a);
+        		r[0][2] = -sin(a);
+        		r[2][2] = cos(a);
+        		pos = r * pos;
+        		dir = r * dir;
+ 
+			gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
+			//gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
+			
+			float totaldist = 0.0;
+			bool hit = false;
+			int lastid;
+			int lastiter;
+			
+			for (int i = 0; i < 80; i+=10)
+			{
+ 
+				float rdist = fuckfunk(pos);
+				
+				if (rdist < 0.001)
+				{
+					lastid = objid;
+					hit = true;
+					lastiter = i;
+					break;
+				}
+				
+				rdist = max(rdist, totaldist * 0.001);
+ 
+				pos += dir * rdist;
+				totaldist += rdist;
+				
+				if (totaldist > 90.0)
+					break;
+			}
+			
+			if (hit)
+			{
+					vec2 texcoords;
+					
+/*					 float veclen = length(pos);
+					texcoords = pos.xy / veclen;
+					gl_FragColor = texture2D(s2d, texcoords);
+*///					gl_FragColor.xyz *= pos.xyz * 0.5 + vec3(0.5,0.5,0.5);
+					
+					
+					vec3 dx = vec3(0.01, 0.0, 0.0);
+					vec3 dy = vec3(0.0, 0.01, 0.0);
+					vec3 dz = vec3(0.0, 0.0, 0.01);
+					
+					vec3 px1 = pos - dx;
+					vec3 px2 = pos + dx;
+					vec3 py1 = pos - dy;
+					vec3 py2 = pos + dy;
+					vec3 pz1 = pos - dz;
+					vec3 pz2 = pos + dz;
+					
+					vec3 normal = vec3(
+					fuckfunk(px2)-fuckfunk(px1),
+					fuckfunk(py2)-fuckfunk(py1), 
+					fuckfunk(pz2)-fuckfunk(pz1));
+					
+					normal = normalize(normal);
+ 
+//					texcoords = normal.xy;
+//					gl_FragColor = texture2D(s2d, texcoords);
+ 
+        				vec3 lightdir = normalize(vec3(3.8,5.8,-1.0));
+        				//lightdir = r * lightdir;
+ 
+					float light = clamp(dot(normal, lightdir)*1.5, 0.4, 1.0);
+					float speclight = 1.0;
+					
+					totaldist = 0.0;
+					
+/*					pos += lightdir * 0.1;
+ 
+					for (int i = 0; i < 80; i+=1)
+					{
+						float rdist = fuckfunk(pos);
+						
+						if (rdist < 0.001)
+						{
+							light *= 0.5;
+							speclight = 0.0;
+							break;
+						}
+						
+						rdist = max(rdist, length(pos) * 0.001);
+		
+						pos += lightdir * rdist;
+						totaldist += rdist;
+						
+						if (totaldist > 90.0)
+							break;
+					}
+*/
+ 
+					if (lastid == 1)
+					{
+						gl_FragColor = vec4(dir.y*1.8, dir.x*1.5, dir.x*1.4, 0.9-beat*0.1);
+						gl_FragColor.xyz *= light;
+					
+						float specular = pow(clamp(dot(reflect(dir, normal),lightdir),1.0,1.0),1.0);
+						gl_FragColor.xyz += vec3(sin(dir.x), cos(dir.x), sin(dir.y)) * specular * 0.3 * speclight;
+					}
+ 
+					
+					
+					
+					
+	
+			}
+ 
+			
+		}
+			
+	</script> 	
 
 	<script id="shaderfs_fsscene" type="x-shader/x-fragment"> 
 		precision highp float;
@@ -354,9 +599,11 @@
 		attribute vec3 vertexPosition;
 		uniform mat4 modelViewMatrix;
 		uniform mat4 perspectiveMatrix;
+		varying vec2 pixpos;
  		
 		void main(void) {
 			gl_Position = perspectiveMatrix * modelViewMatrix * vec4(vertexPosition, 1.0);
+			pixpos = (vertexPosition.xy + vec2(0.0, 0.0)) / vec2(2.0, 2.0);		
 		}
 	</script> 
  	
@@ -455,6 +702,7 @@
 	  	var shaderProgram_psykescene;
 	  	var shaderProgram_letterscene;
 	  	var shaderProgram_fractalscene;
+		var shaderProgram_mankeliscene;
  
 		function linkshader(shaderProgram, fragmentShader, vertexShader) {
 			gl.attachShader(shaderProgram, fragmentShader);
@@ -475,6 +723,7 @@
 			var fragmentShader_psykescene = getShader(gl, "shaderfs_psykescene");
 			var fragmentShader_letterscene = getShader(gl, "shaderfs_letterscene");
 			var fragmentShader_fractalscene = getShader(gl, "shaderfs_fractalscene");
+			var fragmentShader_mankeliscene = getShader(gl, "shaderfs_mankeliscene");
  
 			var vertexShader_fsquad = getShader(gl, "shadervs_fsquad");
  
@@ -485,6 +734,7 @@
 			shaderProgram_psykescene = gl.createProgram();
 			shaderProgram_letterscene = gl.createProgram();
 			shaderProgram_fractalscene = gl.createProgram();
+			shaderProgram_mankeliscene = gl.createProgram();
 	
 			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad);	
@@ -493,6 +743,7 @@
 			linkshader(shaderProgram_psykescene, fragmentShader_psykescene, vertexShader_fsquad);	
 			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad);	
+			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad);	
 	  	}
  
 		var spaceTexture;
@@ -595,6 +846,8 @@
 		var beat_runner = 0;
  
 		var fadecounter = 0;
+		var feedbackval = 0.0;
+		var feedbackalpha = 1.0;
 
 		function getVertices(z) {
 			return new Float32Array([
@@ -794,6 +1047,7 @@
  
 		function initEffects() {
 
+
 			// avaruusscene
 			// efektin rendaamisen funktiokutsu
 			effects.push(" 								\
@@ -806,6 +1060,8 @@
 				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
+				feedbackval = 1.01-Math.cos(beat_runner)*0.01; \
+				feedbackalpha = 1.99+Math.abs(Math.cos(time*0.0005)); \
 			");									
 			
 			// starttime
@@ -830,20 +1086,28 @@
 				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
 				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+				feedbackval = Math.abs(Math.cos(time*0.00005+beat_runner*0.05)*0.5)-0.45; \
+				feedbackalpha = 0.2+Math.abs(Math.cos(time*0.0005)); \
 													\
 			");									
 			effects.push(39600);
-			effects.push(170000);
+			effects.push(120000);
+
+			effects.push(" 								\
+				gl.enable(gl.BLEND); \
+				gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR); \
+				visystyle_scene(shaderProgram_mankeliscene, rttTexture, 0.01); \
+				feedbackval = 0.99+Math.cos(time*0.001)*0.015; \
+				feedbackalpha = 0.29+beat*0.05; \
+			");
+
+			effects.push(120000);
+			effects.push(155000);
 
 			effects.push("endDemo()");
-			effects.push(170000);
+			effects.push(155000);
 			effects.push(10000000);
  
-			// end demo
-		
-			effects.push("endDemo()");
-			effects.push(300000);
-			effects.push(10000000);
 		}
  
 		var effect_pointer = 0;
@@ -897,12 +1161,12 @@
 
 				gl.enable(gl.BLEND);
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);
-				var j = Math.abs(Math.cos(time*0.00005+beat_runner*0.05)*0.5)-0.45;	
-				var mw = rttFramebuffer.width/(j+1);	
-				var mh = rttFramebuffer.height/(j+1);	
+				
+				var mw = rttFramebuffer.width/(feedbackval);	
+				var mh = rttFramebuffer.height/(feedbackval);	
 
 				gl.viewport(0, 0, mw, mh);
-				visystyle_scene(shaderProgram_fsscene, rttTexture,-0.1, 0.2+Math.abs(Math.cos(time*0.0005)), timefromstart, mw*1.0+Math.abs(Math.cos(time*0.0001)*0.5), mh,0.0);
+				visystyle_scene(shaderProgram_fsscene, rttTexture,-0.1, feedbackalpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
 	
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
