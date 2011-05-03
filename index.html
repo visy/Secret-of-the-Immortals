@@ -1137,8 +1137,6 @@
 		var seektime = -1;
 
 		function demo_seekto(msec) {
-			AudioPlayer.stop(); 
-			AudioPlayer.playAndSeek(msec); 
 			
 			var i = 0;
 			var thispart = 0;
@@ -1154,6 +1152,8 @@
 				i+=3;
 				thispart++; 
 			}
+			AudioPlayer.stop(); 
+			AudioPlayer.playAndSeek(msec); 
 
 		}
 
@@ -1162,7 +1162,7 @@
 				var ptimer = parseInt(AudioPlayer.getPosition());
 				var frame_start_msec = 0;
 
-				frame_start_msec = (new Date().getTime());
+				frame_start_msec = ptimer;
 				time = (frame_start_msec - demo_start_time - part_start_time);
 				if (seektime > 0) { time = seektime; seektime = -1; }	
 				
@@ -1224,9 +1224,11 @@
 				visystyle_scene(shaderProgram_fsscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
 
 				gl.finish();
+
+				ptimer = parseInt(AudioPlayer.getPosition());
 		
-				timedelta = (new Date().getTime()-frame_start_msec);
-				timefromlast = (new Date().getTime() - part_start_time);
+				timedelta = (ptimer-frame_start_msec);
+				timefromlast = (ptimer - part_start_time);
 			}
 			
 	  	}
@@ -1241,8 +1243,7 @@
 			initTextures();
 			initEffects();	
 	
-			date = new Date();
-			demo_start_time = date.getTime();
+			demo_start_time = 0;
 
 			setInterval(drawScene,33);
 	  	}

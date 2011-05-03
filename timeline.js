@@ -74,6 +74,7 @@ Timeline.prototype.update = function() {
     if (this.time > animationEnd) {
       this.loopCount++;
       this.time = 0;
+      demo_seekto(this.time*1000);
     }
     if (this.loopMode == -1) {
       //loop infinitely

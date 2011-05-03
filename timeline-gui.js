@@ -268,6 +268,7 @@ Timeline.prototype.onMouseDoubleClick = function(event) {
     if (timeArr.length > 1) minutes = parseInt(timeArr[timeArr.length-2]);
     if (timeArr.length > 2) hours = parseInt(timeArr[timeArr.length-3]);
     this.time = this.totalTime = hours * 60 * 60 + minutes * 60 + seconds;
+    demo_seekto(this.time*1000);
   }
   else if (x > this.trackLabelWidth && this.selectedKeys.length == 0 && y > this.headerHeight && y < this.canvasHeight - this.timeScrollHeight) {
     this.addKeyAt(x, y);
