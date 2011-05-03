@@ -45,6 +45,7 @@ _____________________________________________________.__________________________
 
              - hidden words of bilotrip    a silent whisper in the wind -  
  
-             effects by visy and ilmarque
-             music   by zov
-             ascii   by zax
+             effects            ilmarque + mankeli + visy
+             music              zov
+             music player       parker kane 
+             ascii + css + html zax
