@@ -1176,7 +1176,7 @@
 					hitting = 0;
 				}
 
-				if ((beat_counter % 2) == 1 && hitting == 0) { beat = beat = 5.5; hitting = 1; }
+				if ((beat_counter % 2) == 0 && hitting == 0) { beat = beat = 5.5; hitting = 1; }
 				
 				beat = beat - timedelta*beatfade;
 				if (beat < 0.0) beat = 0;
