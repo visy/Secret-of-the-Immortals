@@ -843,7 +843,8 @@
 	  	var time = 0;
 		var low = 0; 
 		var beat = 0;
-		var beat_time = 618.55670; // 97bpm
+		var demo_beattime = 618.55670; // 97bpm
+		var beat_time = demo_beattime;
 		var beat_target = beat_time;
 		var beat_counter = 0;
 		var beat_runner = 0;
@@ -907,7 +908,6 @@
 			gl.uniform1f(shaderProgram.beatUniform, beat);
 
 		// beat timeline values
-
 			gl.uniform1f(shaderProgram.beatrunnerUniform,tl[part_counter].beat);
 		///////////////////////
  
@@ -1147,6 +1147,10 @@
 					part_start_time = effects[i+1];
 					seektime = msec;
 					ptimer = msec;
+					beat_time = demo_beattime;
+					beat_target = beat_time;
+					beat_counter = 0;
+					beat_runner = 0;
 					break;
 				}
 				i+=3;
