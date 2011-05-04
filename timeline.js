@@ -22,6 +22,7 @@ var Timeline = function() {
 	setInterval(function() {
 	  self.update();
 	}, 1000/30);
+	Audioplayer.play();
 }   
 
 Timeline.currentInstance = null;     
@@ -62,11 +63,13 @@ Timeline.prototype.preUpdate = function() {
 
 Timeline.prototype.update = function() {  
   this.preUpdate();
-                   
+
   if (this.playing) {
-    this.totalTime += 1/30;   
+    
+    var audiopos = parseInt(AudioPlayer.getPosition());
+    this.totalTime += this.prevTime-(audiopos/1000);   
     this.prevTime = this.time;
-    this.time += 1/30;  
+    this.time = audiopos/1000;
   }
   
   if (this.loopMode != 0) {

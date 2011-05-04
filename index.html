@@ -330,13 +330,13 @@
 			oy = c.y;
 			
 			float zoom = myTime*0.05;
-			float zoomy = zoom*1.0+40.0+abs(sin(zoom)*850.0)+beat_runner*10.0;
+			float zoomy = zoom*10.0+40.0+abs(sin(zoom)*550.0)+beat_runner*0.04;
 			
 			c *= 10.0 / zoomy;
-			c.x -= 1.44947+(sin(myTime*0.5)*0.002);
-			c.y += 0.0014897+(cos(myTime*0.6)*0.0001);
+			c.x -= 1.43947+(sin(myTime*0.5)*0.004);
+			c.y += 0.0034897+(cos(myTime*0.6)*0.0001);
  
-			for (int n = 100; n > 5; n-=3)
+			for (int n = 300; n > 100; n-=3)
 			{
 				p2 = p;	
 				
@@ -373,6 +373,10 @@
 		uniform sampler2D s2d;
 		uniform float beat;
 		uniform float beat_runner;
+
+		uniform float x;
+		uniform float y;
+		uniform float z;
  	
 		void main(void) {
 	
@@ -384,6 +388,9 @@
  
 			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01+beat_runner*0.3)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
  
+
+			p.x = p.x + x;
+			p.y = p.y + y;
  
 			float c1 = atan(p.x*0.1+p.y*0.2+myTime*0.7)*cos(p.y*myTime*0.85)*0.6;
 			float c2 = sin(c1+p.y*0.002+p.x*0.003+myTime*0.7)*sin(p.x*0.01-myTime*0.8)*0.6;
@@ -409,6 +416,10 @@
 		uniform sampler2D s2d;
 		uniform float beat;
 		uniform float alpha;
+
+		uniform float x;
+		uniform float y;
+		uniform float z;
  
 		void main(void) {
 	
@@ -423,22 +434,22 @@
 			vec2 p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*3.0;
  
 			// avaruuseffu
-			p.x = p.x + myTime*0.9*sin(myTime*0.1)*600.0;
-			p.y = p.y + myTime*0.6*cos(myTime*0.09)*300.0;
+			p.x = p.x + x;
+			p.y = p.y + y;
  
  
-			float z = cos(myTime*0.1+(cos(p.y*0.3*cos(myTime*0.001)*((cos(myTime*0.008+p.y*0.0001)*0.0006)*p.x))*0.01)*(0.5*p.y*cos(myTime*0.01+p.x*0.001)*0.01)+sin(p.y*0.0001+myTime*0.01)*0.001)*0.0002;
+			float zoom = cos(myTime*0.1+(cos(p.y*0.3*cos(myTime*0.001)*((cos(myTime*0.008+p.y*0.0001)*0.0006)*p.x))*0.01)*(0.5*p.y*cos(myTime*0.01+p.x*0.001)*0.01)+sin(p.y*0.0001+myTime*0.01)*0.001)*0.0002;
  
  
-			z = z + 0.0007;
+			zoom = zoom + 0.0007;
  
  
-			float z2 = z*550.0;
+			float z2 = zoom*z;
  
 			if (z2 > 0.6) z2 = 0.6;
  
-			float tx = p.y*z*0.9;
-			float ty = p.x*z*0.8;
+			float tx = p.y*zoom*0.9;
+			float ty = p.x*zoom*0.8;
  
 			float r = cos(myTime*0.1+z+p.y*0.0001)*0.7;
 			float r2 = sin(myTime*0.1+z+p.x*0.0001)*0.6;
@@ -855,6 +866,7 @@
 			
 		var part_counter = 0;
 		var tl = [];
+		var feedback = [];
 
 
 		function getVertices(z) {
@@ -873,7 +885,7 @@
 			]);
 		}
  
-		function visystyle_scene(shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
+		function visystyle_scene(layer, shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
  
 			if (!alpha) alpha = 1.0;
 
@@ -906,9 +918,16 @@
 			gl.uniform1f(shaderProgram.timeUniform, time);
 
 			gl.uniform1f(shaderProgram.beatUniform, beat);
+			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
 
-		// beat timeline values
-			gl.uniform1f(shaderProgram.beatrunnerUniform,tl[part_counter].beat);
+
+		// timeline values
+			shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+			gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+			shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+			gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+			shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+			gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
 		///////////////////////
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
@@ -1056,25 +1075,41 @@
  
 		function initEffects() {
 
+			tl = new Array(10);
+
+			var i;
+			for(i=0;i<tl.length;i++) tl[i] = new Array(10);
+
 
 			// avaruusscene
 			// efektin rendaamisen funktiokutsu
 			effects.push(" 								\
 				gl.enable(gl.BLEND); 						\
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
-				visystyle_scene(shaderProgram_avaruusscene, spaceTexture,0.01); \
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);					\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
-				feedbackval = 1.01-Math.cos(beat_runner)*0.01; \
-				feedbackalpha = 1.99+Math.abs(Math.cos(time*0.0005)); \
 			");
 
-			tl.push({beat: 0});
-			anim("scene1", tl[0]).to({beat:0}, 0).to({beat:10}, 2, Timeline.Easing.Cubic.EaseOut);
+			tl[0][0] = {x: 0, y: 0, z: 0};
+			tl[0][1] = {x: 0, y: 0, z: 0};
+			tl[0][2] = {x: 0, y: 0, z: 0};
+
+			var scene1_space = new Object;
+			var scene1_psyke = new Object;
+
+			scene1_space = tl[0][0];
+			scene1_psyke = tl[0][1];
+			anim("scene1_space",scene1_space).to({"x":100},0).to({"x":1000},42);
+			anim("scene1_space",scene1_space).to({"y":10},0).to({"y":1000},42.5);
+			anim("scene1_space",scene1_space).to({"z":0},0).to({"z":1},43.5, Timeline.Easing.Cubic.EaseOut);
+			anim("scene1_psyke",scene1_psyke).to({"x":10},0).to({"x":10000},59);
+			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
+			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},53);
 
 			// starttime
 			effects.push(0);
@@ -1087,38 +1122,41 @@
 			effects.push(" 									\
 				gl.enable(gl.BLEND); 							\
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
-				visystyle_scene(shaderProgram_avaruusscene, spaceTexture,0.01); \
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);					\
-				visystyle_scene(shaderProgram_fractalscene, spaceTexture,0.01, 0.5); 	\
+				visystyle_scene(1,shaderProgram_fractalscene, spaceTexture,0.01, 0.5); 	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);				\
-				if (ptimer > 61700) visystyle_scene(shaderProgram_analogscene, spaceTexture, 0.01, 1.00, time-part_start_time);	\
+				if (ptimer > 61700) visystyle_scene(2,shaderProgram_analogscene, spaceTexture, 0.01, 1.00, time-part_start_time);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
-				visystyle_scene(shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
-				feedbackval = Math.abs(Math.cos(time*0.00005+beat_runner*0.05)*0.5)-0.45; \
-				feedbackalpha = 0.2+Math.abs(Math.cos(time*0.0005)); \
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 													\
 			");
 
-			tl.push({beat: 0});
-			anim("scene2", tl[1]).to({beat:0}, 0).to({beat:10}, 2, Timeline.Easing.Cubic.EaseOut);
-									
+			tl[1][0] = {x: 0, y: 0, z: 0};
+			tl[1][1] = {x: 0, y: 0, z: 0};
+			tl[1][2] = {x: 0, y: 0, z: 0};
+
+			var scene2_fractal = new Object;
+
+			scene2_fractal = tl[1][1];
+
+			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":10},128.25000000000003, Timeline.Easing.Cubic.EaseOut);
+			anim("scene2_fractal",scene2_fractal).to({"y":0},0).to({"y":10},122.04000000000002, Timeline.Easing.Cubic.EaseOut);
+			anim("scene2_fractal",scene2_fractal).to(2,{"z":10},0).to({"z":0},125.71000000000001);
+
+
 			effects.push(39600);
 			effects.push(120000);
 
 			effects.push(" 								\
 				gl.enable(gl.BLEND); \
 				gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR); \
-				visystyle_scene(shaderProgram_mankeliscene, rttTexture, 0.01); \
-				feedbackval = 0.99+Math.cos(time*0.001)*0.015; \
-				feedbackalpha = 0.29+beat*0.05; \
+				visystyle_scene(0,shaderProgram_mankeliscene, rttTexture, 0.01); \
 			");
-
-			tl.push({beat: 0});
-			anim("scene3", tl[2]).to({beat:0}, 0).to({beat:10}, 2, Timeline.Easing.Cubic.EaseOut);
 
 			effects.push(120000);
 			effects.push(155000);
@@ -1126,7 +1164,14 @@
 			effects.push("endDemo()");
 			effects.push(155000);
 			effects.push(10000000);
- 
+
+			feedback.push({amount:0, alpha:0});
+
+
+			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.5},9.81539995556167).to({"amount":0.9},0.720000000000006).to({"amount":1},35.82);
+			anim("feedback",feedback).to(-0.5,{"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut);
+
+
 			Timeline.getGlobalInstance().loop(-1);
 		}
  
@@ -1206,14 +1251,15 @@
 				}
 
 
+
 				gl.enable(gl.BLEND);
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);
-				
-				var mw = rttFramebuffer.width/(feedbackval);	
-				var mh = rttFramebuffer.height/(feedbackval);	
+
+				var mw = rttFramebuffer.width/(feedback.amount);	
+				var mh = rttFramebuffer.height/(feedback.amount);	
 
 				gl.viewport(0, 0, mw, mh);
-				visystyle_scene(shaderProgram_fsscene, rttTexture,-0.1, feedbackalpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
+				visystyle_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
 	
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
@@ -1225,7 +1271,7 @@
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 
-				visystyle_scene(shaderProgram_fsscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
+				visystyle_scene(0,shaderProgram_fsscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
 
 				gl.finish();
 
@@ -1249,7 +1295,7 @@
 	
 			demo_start_time = 0;
 
-			setInterval(drawScene,33);
+			setInterval(drawScene,1000/30);
 	  	}
 	</script> 
 	<script type="text/javascript"> 
@@ -1358,7 +1404,6 @@
 		
 		function audioLoadComplete() {
 			init();
-			AudioPlayer.play();
 			document.getElementById("posPrefix").innerHTML = "";
 			document.getElementById("posSuffix").innerHTML = "ms";
 		}
