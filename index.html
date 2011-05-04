@@ -300,6 +300,11 @@
 		uniform float beat_runner;
 		uniform float width;
 		uniform float height;
+		
+		uniform float x;
+		uniform float y;
+		uniform float z;
+
 		uniform sampler2D s2d;
 
 		void main(void) {
@@ -329,14 +334,13 @@
 			float oy;
 			oy = c.y;
 			
-			float zoom = myTime*0.05;
-			float zoomy = zoom*10.0+40.0+abs(sin(zoom)*550.0)+beat_runner*0.04;
+			float zoomy = z;
 			
 			c *= 10.0 / zoomy;
-			c.x -= 1.43947+(sin(myTime*0.5)*0.004);
-			c.y += 0.0034897+(cos(myTime*0.6)*0.0001);
+			c.x += x;
+			c.y += y;
  
-			for (int n = 300; n > 100; n-=3)
+			for (int n = 300; n > 100; n-=10)
 			{
 				p2 = p;	
 				
@@ -386,7 +390,7 @@
  
 			float myTime = time * 0.0002; 
  
-			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01+beat_runner*0.3)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
+			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01+z*0.3)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
  
 
 			p.x = p.x + x;
@@ -647,7 +651,7 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 512;
+			rttFramebuffer.width = 512*2;
 			rttFramebuffer.height = 512;
 
 			rttTexture = gl.createTexture();
@@ -1095,21 +1099,39 @@
 				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
 			");
 
+			// add params to each scene and layer here
+
+			// [scenenum][layernum]
+
 			tl[0][0] = {x: 0, y: 0, z: 0};
 			tl[0][1] = {x: 0, y: 0, z: 0};
 			tl[0][2] = {x: 0, y: 0, z: 0};
 
+			tl[1][0] = {x: 0, y: 0, z: 0};
+			tl[1][1] = {x: 0, y: 0, z: 0};
+			tl[1][2] = {x: 0, y: 0, z: 0};
+
+			// timeline anim objects
+
 			var scene1_space = new Object;
 			var scene1_psyke = new Object;
+			var scene2_fractal = new Object;
 
 			scene1_space = tl[0][0];
 			scene1_psyke = tl[0][1];
+			scene2_fractal = tl[1][1];
+
+			// cut and paste export to here 
+
 			anim("scene1_space",scene1_space).to({"x":100},0).to({"x":1000},42);
 			anim("scene1_space",scene1_space).to({"y":10},0).to({"y":1000},42.5);
 			anim("scene1_space",scene1_space).to({"z":0},0).to({"z":1},43.5, Timeline.Easing.Cubic.EaseOut);
 			anim("scene1_psyke",scene1_psyke).to({"x":10},0).to({"x":10000},59);
 			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
-			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},53);
+			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},56);
+			anim("scene2_fractal",scene2_fractal).to(40,{"x":0},0).to({"x":0},0).to({"x":-1},19, Timeline.Easing.Cubic.EaseOut).to({"x":0},5.001503504581962).to({"x":0},13.5).to({"x":0},10.518496495418049).to({"x":10},4.97999999999999).to({"x":1},23);
+			anim("scene2_fractal",scene2_fractal).to(36.5,{"y":0},0).to({"y":10},0).to({"y":10},23.5).to({"y":0},4.618646361724814, Timeline.Easing.Cubic.EaseOut).to({"y":0},12.728571428571428, Timeline.Easing.Elastic.EaseInOut).to({"y":0},10.672782209703769, Timeline.Easing.Elastic.EaseInOut).to({"y":...unt":0.5},9.81539995556167).to({"amount":0.9},0.720000000000006).to({"amount":1},35.82).to({"amount":0.8},-75.87).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.5},9.81539995556167).to({"amount":0.9},0.720000000000006).to({"amount":1},35.82);
+			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0},-40.28237159846472).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut);
 
 			// starttime
 			effects.push(0);
@@ -1136,19 +1158,6 @@
 													\
 			");
 
-			tl[1][0] = {x: 0, y: 0, z: 0};
-			tl[1][1] = {x: 0, y: 0, z: 0};
-			tl[1][2] = {x: 0, y: 0, z: 0};
-
-			var scene2_fractal = new Object;
-
-			scene2_fractal = tl[1][1];
-
-			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":10},128.25000000000003, Timeline.Easing.Cubic.EaseOut);
-			anim("scene2_fractal",scene2_fractal).to({"y":0},0).to({"y":10},122.04000000000002, Timeline.Easing.Cubic.EaseOut);
-			anim("scene2_fractal",scene2_fractal).to(2,{"z":10},0).to({"z":0},125.71000000000001);
-
-
 			effects.push(39600);
 			effects.push(120000);
 
@@ -1169,7 +1178,7 @@
 
 
 			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.5},9.81539995556167).to({"amount":0.9},0.720000000000006).to({"amount":1},35.82);
-			anim("feedback",feedback).to(-0.5,{"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut);
+			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut);
 
 
 			Timeline.getGlobalInstance().loop(-1);

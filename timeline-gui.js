@@ -84,21 +84,25 @@ Timeline.prototype.initGUI = function() {
   
   var self = this;
   this.canvas.addEventListener('click', function(event) {
+     event.preventDefault();
      self.onMouseClick(event);
   }, false);
   this.canvas.addEventListener('mousedown', function(event) {
     self.onMouseDown(event);
   }, false);
   document.body.addEventListener('mousemove', function(event) {
+    event.preventDefault();
     self.onDocumentMouseMove(event);
   }, false);
   this.canvas.addEventListener('mousemove', function(event) {
     self.onCanvasMouseMove(event);
   }, false);
   document.body.addEventListener('mouseup', function(event) {
+    event.preventDefault();
     self.onMouseUp(event);
   }, false);    
   this.canvas.addEventListener('dblclick', function(event) {
+    event.preventDefault();
     self.onMouseDoubleClick(event);
   }, false);        
 }                                                  
@@ -211,6 +215,7 @@ Timeline.prototype.onCanvasMouseMove = function(event) {
 }              
 
 Timeline.prototype.onMouseUp = function(event) {
+  event.preventDefault();
   if (this.draggingTime) {
     this.draggingTime = false;
   }        
@@ -229,6 +234,7 @@ Timeline.prototype.onMouseUp = function(event) {
 }
 
 Timeline.prototype.onMouseClick = function(event) {
+  event.preventDefault();
   if (event.layerX < 1*this.headerHeight - 4 * 0 && event.layerY < this.headerHeight) {
     this.play();
     Audioplayer.play();
@@ -254,6 +260,7 @@ Timeline.prototype.onMouseClick = function(event) {
 }  
 
 Timeline.prototype.onMouseDoubleClick = function(event) {
+  event.preventDefault();
   var x = event.layerX;
   var y = event.layerY;
   
@@ -878,8 +885,7 @@ Timeline.prototype.export = function() {
     }
     code += ';\n';
   }
-    
-  prompt("Copy this:", code);
+  prompt("copy me:", code);
 }
 
 Timeline.prototype.save = function() {    
