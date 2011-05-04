@@ -104,8 +104,33 @@ Timeline.prototype.initGUI = function() {
   this.canvas.addEventListener('dblclick', function(event) {
     event.preventDefault();
     self.onMouseDoubleClick(event);
-  }, false);        
-}                                                  
+  }, false);
+
+
+  document.body.addEventListener('keypress', function(event) {
+    self.onKeyUp(event);
+  }, false);
+ 
+}             
+
+Timeline.prototype.onKeyUp = function(event) {
+	switch(event.keyCode) {
+		case 68:
+			deleteLocalStorage();
+			break;
+	}
+}                           
+
+deleteLocalStorage = function() {
+	var r=confirm("WARNING: PRESSING OK WILL DELETE YOUR LOCAL MODIFICATIONS TO ANIMATION DATA, CONTINUE?");
+	if (r==true) {
+		localStorage.clear();
+	}
+	else {
+		alert("Deletion cancelled.");
+	}
+	
+}
 
 Timeline.prototype.onMouseDown = function(event) {   
   this.selectedKeys = [];    
@@ -884,8 +909,9 @@ Timeline.prototype.export = function() {
       //code += '.to(' + anim.delay + ',{' + '"' + anim.propertyName + '"' + ':' + anim.endValue + '} ')';
     }
     code += ';\n';
+    prompt("copy me #" + i +":", code);
+    code = "";
   }
-  prompt("copy me:", code);
 }
 
 Timeline.prototype.save = function() {    
