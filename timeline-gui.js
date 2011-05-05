@@ -115,22 +115,18 @@ Timeline.prototype.initGUI = function() {
 
 Timeline.prototype.onKeyUp = function(event) {
 	switch(event.keyCode) {
+		// shift + d: delete local storage
 		case 68:
-			deleteLocalStorage();
+			var r=confirm("WARNING: PRESSING OK WILL DELETE YOUR LOCAL MODIFICATIONS TO ANIMATION DATA, CONTINUE?");
+			if (r==true) {
+				localStorage.clear();
+			}
+			else {
+				alert("Deletion cancelled.");
+			}
 			break;
 	}
 }                           
-
-deleteLocalStorage = function() {
-	var r=confirm("WARNING: PRESSING OK WILL DELETE YOUR LOCAL MODIFICATIONS TO ANIMATION DATA, CONTINUE?");
-	if (r==true) {
-		localStorage.clear();
-	}
-	else {
-		alert("Deletion cancelled.");
-	}
-	
-}
 
 Timeline.prototype.onMouseDown = function(event) {   
   this.selectedKeys = [];    
@@ -262,17 +258,17 @@ Timeline.prototype.onMouseClick = function(event) {
   event.preventDefault();
   if (event.layerX < 1*this.headerHeight - 4 * 0 && event.layerY < this.headerHeight) {
     this.play();
-    Audioplayer.play();
+    audioPlay();
     demo_seekto(this.time*1000);
   }                     
   if (event.layerX > 1*this.headerHeight - 4 * 0 && event.layerX < 2*this.headerHeight - 4 * 1 && event.layerY < this.headerHeight) {
     this.pause();
-    Audioplayer.stop();
+    audioStop();
   }
   
   if (event.layerX > 2*this.headerHeight - 4 * 1 && event.layerX < 3*this.headerHeight - 4 * 2 && event.layerY < this.headerHeight) {
     this.stop();
-    Audioplayer.stop();
+    audioStop();
   }
   
   if (event.layerX > 3*this.headerHeight - 4 * 2 && event.layerX < 4*this.headerHeight - 4 * 3 && event.layerY < this.headerHeight) {
@@ -301,6 +297,25 @@ Timeline.prototype.onMouseDoubleClick = function(event) {
     if (timeArr.length > 2) hours = parseInt(timeArr[timeArr.length-3]);
     this.time = this.totalTime = hours * 60 * 60 + minutes * 60 + seconds;
     demo_seekto(this.time*1000);
+  }
+  else if (x < this.trackLabelWidth) {
+    var x = event.layerX;
+    var y = event.layerY;
+
+    var selectedTrack = this.getTrackAt(x, y);
+    if (selectedTrack) {
+      if (selectedTrack.type == "property") {            
+        var r = confirm("Really clear track '" + selectedTrack.name + "' ?");
+        if (r==true) {
+  	  this.selectedKeys = [];
+	  for (var i = 0; i<selectedTrack.keys.length;i++) {
+	    var selectedKey = selectedTrack.keys[i];
+            this.selectedKeys.push(selectedKey);
+          }
+          this.deleteSelectedKeys(); 
+        }
+      }
+    }
   }
   else if (x > this.trackLabelWidth && this.selectedKeys.length == 0 && y > this.headerHeight && y < this.canvasHeight - this.timeScrollHeight) {
     this.addKeyAt(x, y);

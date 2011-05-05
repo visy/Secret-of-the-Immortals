@@ -651,13 +651,17 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 512*2;
+			rttFramebuffer.width = 512;
 			rttFramebuffer.height = 512;
 
 			rttTexture = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
 			gl.generateMipmap(gl.TEXTURE_2D);
 
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, rttFramebuffer.width, rttFramebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -673,6 +677,32 @@
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+			if (!gl.isFramebuffer(rttFramebuffer)) {
+			    alert("Invalid framebuffer");
+			}
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+			var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+			switch (status) {
+				case gl.FRAMEBUFFER_COMPLETE:
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+				    break;
+				case gl.FRAMEBUFFER_UNSUPPORTED:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_UNSUPPORTED");
+				    break;
+				default:
+				    alert("Incomplete framebuffer: " + status);
+			}
 
 		}
 
@@ -1124,6 +1154,7 @@
 			// cut and paste export to here 
 
 			anim("scene1_space",scene1_space).to({"x":100},0).to({"x":1000},42);
+
 			anim("scene1_space",scene1_space).to({"y":10},0).to({"y":1000},42.5);
 			anim("scene1_space",scene1_space).to({"z":0},0).to({"z":1},43.5, Timeline.Easing.Cubic.EaseOut);
 
@@ -1184,7 +1215,6 @@
 
 			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.5},9.81539995556167).to({"amount":0.9},0.720000000000006).to({"amount":1},35.82);
 			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut);
-
 
 			Timeline.getGlobalInstance().loop(-1);
 		}
@@ -1264,8 +1294,6 @@
 					beat_runner = 0;
 				}
 
-
-
 				gl.enable(gl.BLEND);
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);
 
@@ -1278,7 +1306,6 @@
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
 				gl.bindTexture(gl.TEXTURE_2D, null);
-
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -1300,7 +1327,6 @@
  
 	  	function webGLStart() {
 			var canvas = document.getElementById("bilocanvas");
- 
 			initGL(canvas);
 			initFramebuffer();
 			initShaders();
@@ -1371,7 +1397,7 @@
 			container = document.getElementById("container");
 			canvas = document.getElementById("bilocanvas");
 			container.style.width = browserSize.noOverflowWidth + "px";
-			container.style.height = browserSize.noOverflowHeight + "px";
+			container.style.height = browserSize.noOverflowHeight-200 + "px";
 			canvas.width = container.offsetWidth-8;
 			canvas.height = container.offsetHeight-8;
 			
@@ -1415,7 +1441,15 @@
 			AudioPlayer = document.getElementById('Audioplayer');
 			AudioPlayer.load("song.mp3");
 		}
-		
+	
+		function audioPlay() {
+			AudioPlayer.play();
+		}
+
+		function audioStop() {
+			AudioPlayer.stop();
+		}
+	
 		function audioLoadComplete() {
 			init();
 			document.getElementById("posPrefix").innerHTML = "";
