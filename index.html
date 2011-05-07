@@ -888,9 +888,6 @@
 		var low = 0; 
 		var beat = 0;
 		var demo_beattime = 618.55670; // 97bpm
-		var beat_time = demo_beattime;
-		var beat_target = beat_time;
-		var beat_counter = 0;
 		var beat_runner = 0;
  
 		var fadecounter = 0;
@@ -1224,7 +1221,6 @@
 		var effect_pointer = 0;
 		var hitting = 0;
 		var timedelta = 0;
-		var beatfade = 0.01;
 		var seektime = -1;
 
 		function demo_seekto(msec) {
@@ -1238,9 +1234,6 @@
 					part_start_time = effects[i+1];
 					seektime = msec;
 					ptimer = msec;
-					beat_time = demo_beattime;
-					beat_target = beat_time;
-					beat_counter = 0;
 					beat_runner = 0;
 					break;
 				}
@@ -1261,8 +1254,8 @@
 				time = (frame_start_msec - demo_start_time - part_start_time);
 				if (seektime > 0) { time = seektime; seektime = -1; }	
 				
-				beat = AudioPlayer.getAverageFFT(0,64);
-				beat_runner = beat_runner + beat;
+				beat = AudioPlayer.getAverageFFT(0,128)*2.0;
+				if (beat > 0.2) beat_runner = beat_runner + beat;
 
 				document.getElementById('posValue').textContent = ptimer + " / " + "beat: " + beat + " beat_runner:" + beat_runner + " timedelta: " + timedelta;
 				document.getElementById('posSuffix').textContent = "";
