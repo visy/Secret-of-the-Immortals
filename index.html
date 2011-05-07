@@ -279,7 +279,7 @@
 			vec2 c, c2;
 			
 			c = (gl_FragCoord.xy / resolution.xy);
-			
+
 			vec4 d = texture2D(s2d, c);
 
 			gl_FragColor = vec4(d.r, d.g, d.b, alpha);
@@ -629,7 +629,7 @@
 		var gl;
 		var vertexBuffer;
 		var rttFramebuffer;
-		var rttTexture = null;
+		var rttTexture;
  
 		function initGL(canvas) {
 			try {
@@ -657,7 +657,6 @@
 			rttTexture = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -1010,9 +1009,15 @@
 
 	  	}
 		
-		function letters_scene(shaderProgram, currentTexture, z, alpha) {
+		function fs_scene(layer, shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
  
-			if (!alpha) alpha = 1.0; 
+			if (!alpha) alpha = 1.0;
+
+			if (!xoff) xoff = 0.0;
+
+			if (w) { scw = w; sch = h; }
+			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
+
 			gl.useProgram(shaderProgram);
  
 			var vertexPosition = gl.getAttribLocation(shaderProgram, "vertexPosition");
@@ -1023,6 +1028,7 @@
 			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
 			shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
 			shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
+			shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
 			shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
  
  
@@ -1030,37 +1036,20 @@
 			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
 			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 0);
  
-			gl.uniform1f(shaderProgram.widthUniform, rttFramebuffer.width);
-			gl.uniform1f(shaderProgram.heightUniform, rttFramebuffer.height);	
+			gl.uniform1f(shaderProgram.widthUniform, scw);
+			gl.uniform1f(shaderProgram.heightUniform, sch);	
  
 			gl.uniform1f(shaderProgram.timeUniform, time);
+
 			gl.uniform1f(shaderProgram.beatUniform, beat);
- 
+			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
+
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
  
-			gl.enable(gl.DEPTH_TEST);
-			gl.depthFunc(gl.LEQUAL);
- 		
-			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
- 		
-			var vertices = new Float32Array([
-				0.0, 2.0, 4.0,
-				-3.0, 2.0, 4.0,
-				-3.0, -2.0, 4.0,
- 
-				-3.0, -2.0, 4.0,
-				3.0, -2.0, 4.0,
-				0.0, 2.0, 4.0,
- 
-				0.0, 2.0, 4.0,
-				3.0, 2.0, 4.0,
-				3.0, -2.0, 4.0
-			]);
- 
-			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
 			var fieldOfView = 20.0;
-			var aspectRatio = rttFramebuffer.width / rttFramebuffer.height;
+			var aspectRatio = scw / sch;
 			var nearPlane = 1.0;
 			var farPlane = 10000.0;
 			var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
@@ -1098,6 +1087,7 @@
 			gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
  	
 			gl.drawArrays(gl.TRIANGLES, 0, 9);
+
 	  	}
  
 		function endDemo() {
@@ -1181,7 +1171,7 @@
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);					\
 				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
-				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
 			");
 
 			// starttime
@@ -1201,7 +1191,7 @@
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);				\
 				if (ptimer > 61700) visystyle_scene(2,shaderProgram_analogscene, spaceTexture, 0.01, 1.00, time-part_start_time);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
-				letters_scene(shaderProgram_letterscene, letterTexture,0.01);	\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
 				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
@@ -1296,9 +1286,9 @@
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
 		
-				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2])
+				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2]) {
 					eval(effects[effect_pointer]);
-				else {
+				} else {
 					effect_pointer+=3;
 					part_counter++;
 					part_start_time = ptimer;
@@ -1312,19 +1302,21 @@
 				var mw = rttFramebuffer.width/(feedback.amount);	
 				var mh = rttFramebuffer.height/(feedback.amount);	
 
-				gl.viewport(0, 0, mw, mh);
-				visystyle_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
+				gl.viewport(0, 0, 512, 512);
+				fs_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
 	
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
 				gl.generateMipmap(gl.TEXTURE_2D);
+
 				gl.bindTexture(gl.TEXTURE_2D, null);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+				gl.disable(gl.BLEND);
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 
-				visystyle_scene(0,shaderProgram_fsscene, rttTexture,0.01, 1.00, timefromstart, gl.viewportWidth, gl.viewportHeight);
+				fs_scene(0,shaderProgram_fsscene, rttTexture,0.01, 0.0, timefromstart, gl.viewportWidth, gl.viewportHeight);
 
 				gl.finish();
 
