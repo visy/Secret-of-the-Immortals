@@ -237,7 +237,7 @@
  
 					if (lastid == 1)
 					{
-						gl_FragColor = vec4(dir.y*1.8, dir.x*1.5, dir.x*1.4, 0.9-beat*0.1);
+						gl_FragColor = vec4(dir.y*1.8, dir.x*1.5, dir.x*1.8, 0.8-beat*0.1);
 						gl_FragColor.xyz *= light;
 					
 						float specular = pow(clamp(dot(reflect(dir, normal),lightdir),1.0,1.0),1.0);
@@ -651,7 +651,7 @@
 		function initFramebuffer() {
 			rttFramebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-			rttFramebuffer.width = 512;
+			rttFramebuffer.width = 512*2;
 			rttFramebuffer.height = 512;
 
 			rttTexture = gl.createTexture();
@@ -1143,16 +1143,14 @@
 			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
 			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},56);
 
-			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},4.071999999999996).to({"x":-0.2},13.068000000000005, Timeline.Easing.Cubic.EaseOut).to({"x":0.5},11.887884336099589).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
-			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.211999999999996, Timeline.Easing.Cubic.EaseOut).to({"y":0.9},5.832000000000008, Timeline.Easing.Bounce.EaseOut).to({"y":0},5.831999999999994, Timeline.Easing.Quadratic.EaseIn).to({"y":0},11.664000000000016, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
-			anim("scene2_fractal",scene2_fractal).to({"z":10},0).to({"z":10},38).to({"z":10},5).to({"z":9},16.5).to({"z":9},0.697276371715617).to({"z":15},13.026723628284387).to({"z":0.021420094043132498},8.099999999999994, Timeline.Easing.Cubic.EaseOut).to({"z":0.9062022177296598},0.3318843360995771, Timeline.Easing.Back.EaseIn).to({"z":50},16.956000000000017, Timeline.Easing.Back.EaseOut).to({"z":10},15.012).to({"z":10},88.8761156639004);
-
+			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},2.524563170694975).to({"x":-0.1},2.533846153846156, Timeline.Easing.Cubic.EaseOut).to({"x":-0.8},14.538461538461533).to({"x":0.1},1.8276923076923168, Timeline.Easing.Quadratic.EaseIn).to({"x":0.5},7.6033211654046085).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
+			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.159947786079606, Timeline.Easing.Cubic.EaseOut).to({"y":0.4},8.598461538461521).to({"y":0},3.73846153846155).to({"y":0},11.043129136997337, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
+			anim("scene2_fractal",scene2_fractal).to({"z":10},0).to({"z":10},38).to({"z":10},5).to({"z":9},16.5).to({"z":9},0.697276371715617).to({"z":15},18.648825260517825).to({"z":0.007420094043132498},2.6169230769230722, Timeline.Easing.Cubic.EaseOut).to({"z":0.9062022177296598},0.19285962694306136, Timeline.Easing.Back.EaseIn).to({"z":50},16.956000000000017, Timeline.Easing.Back.EaseOut).to({"z":10},15.012).to({"z":10},88.8761156639004);
 			anim("scene3_marcher",scene3_marcher).to({"x":100},0).to({"x":1000},42);
 			anim("scene3_marcher",scene3_marcher).to({"y":100},0).to({"y":1000},42);
 			anim("scene3_marcher",scene3_marcher).to({"z":100},0).to({"z":1000},42);
-			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},35.82).to({"amount":1},0).to({"amount":1},0).to({"amount":1},42.129999999999995).to({"amount":0.9568181818181818},21.5).to({"amount":0.9},19);
-			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0).to({"alpha":1},0).to({"alpha":1},79.71762840153528).to({"alpha":0.2},10.5);
-
+			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},25.449999999999996).to({"amount":0.9797005351473923},34.94, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.5},20.52000000000001, Timeline.Easing.Quadratic.EaseIn).to({"amount":0},0).to({"amount":0.5568181818181818},17.639999999999986, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.9},1.8000000000000114).to({"amount":1.2824742268041245},2.5200000000000102).to({"amount":1},15.47999999999999).to({"amount":0},5.5800000000000125);
+			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0).to({"alpha":1},0).to({"alpha":1},79.71762840153528).to({"alpha":0.660790273556231},22.74000000000001).to({"alpha":0.9},9.539999999999992).to({"alpha":0.3},10.800000000000011);
 
 
 			// SCENES
@@ -1282,7 +1280,7 @@
 				var mw = rttFramebuffer.width/(feedback.amount);	
 				var mh = rttFramebuffer.height/(feedback.amount);	
 
-				gl.viewport(0, 0, 512, 512);
+				gl.viewport(0, 0,rttFramebuffer.width, rttFramebuffer.height);
 				fs_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
 	
 				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
