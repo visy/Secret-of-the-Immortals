@@ -268,6 +268,7 @@
 		uniform float height;
 		uniform sampler2D s2d;
 		uniform float alpha;
+		uniform float layer_alpha;
  	
 		void main(void)
 		{
@@ -282,7 +283,10 @@
 
 			vec4 d = texture2D(s2d, c);
 
-			gl_FragColor = vec4(d.r, d.g, d.b, alpha);
+			if (layer_alpha > 0.0)
+				gl_FragColor = vec4(d.r, d.g, d.b, layer_alpha);
+			else
+				gl_FragColor = vec4(d.r, d.g, d.b, alpha);
  
 		}
 			
@@ -795,6 +799,7 @@
  
 		var spaceTexture;
 		var letterTexture;
+		var bilogoTexture;
  
 		function initTextures() {
 			spaceTexture = gl.createTexture();
@@ -813,6 +818,14 @@
 		    	}
  
 		    	letterTexture.image.src = "letters.png";
+
+			bilogoTexture = gl.createTexture();
+			bilogoTexture.image = new Image();
+			bilogoTexture.image.onload = function() {
+				handleLoadedTexture_bilogo(bilogoTexture)
+			} 
+
+		    	bilogoTexture.image.src = "bilogo.png";
 		}
  
 		  function handleLoadedTexture_space(texture) {
@@ -831,6 +844,16 @@
 		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
 		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+
+		  function handleLoadedTexture_bilogo(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		    gl.generateMipmap(gl.TEXTURE_2D);
 		    gl.bindTexture(gl.TEXTURE_2D, null);
 		  }
  	
@@ -950,14 +973,15 @@
 			gl.uniform1f(shaderProgram.beatUniform, beat);
 			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
 
-
 		// timeline values
 			shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
-			gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+			if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
 			shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
-			gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+			if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
 			shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
-			gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+			if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+			shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+			if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
 		///////////////////////
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
@@ -1042,6 +1066,15 @@
 			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
 
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
+		// timeline values
+			shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+			if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+			shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+			if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+			shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+			if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+			shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+			if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
  
 			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
@@ -1108,7 +1141,7 @@
 
 			tl[0][0] = {x: 0, y: 0, z: 0};
 			tl[0][1] = {x: 0, y: 0, z: 0};
-			tl[0][2] = {x: 0, y: 0, z: 0};
+			tl[0][2] = {x: 0, y: 0, z: 0, layer_alpha: 0};
 
 			tl[1][0] = {x: 0, y: 0, z: 0};
 			tl[1][1] = {x: 0, y: 0, z: 0};
@@ -1122,11 +1155,13 @@
 
 			var scene1_space = new Object;
 			var scene1_psyke = new Object;
+			var scene1_bilogo = new Object;
 			var scene2_fractal = new Object;
 			var scene3_marcher = new Object;
 
 			scene1_space = tl[0][0];
 			scene1_psyke = tl[0][1];
+			scene1_bilogo = tl[0][2];
 			scene2_fractal = tl[1][1];
 			scene3_marcher = tl[2][0];
 
@@ -1142,6 +1177,8 @@
 			anim("scene1_psyke",scene1_psyke).to({"x":10},0).to({"x":10000},59);
 			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
 			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},56);
+
+			anim("scene1_bilogo",scene1_bilogo).to({"layer_alpha":0},0).to({"layer_alpha":0},56);
 
 			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},2.524563170694975).to({"x":-0.1},2.533846153846156, Timeline.Easing.Cubic.EaseOut).to({"x":-0.8},14.538461538461533).to({"x":0.1},1.8276923076923168, Timeline.Easing.Quadratic.EaseIn).to({"x":0.5},7.6033211654046085).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
 			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.159947786079606, Timeline.Easing.Cubic.EaseOut).to({"y":0.4},8.598461538461521).to({"y":0},3.73846153846155).to({"y":0},11.043129136997337, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
@@ -1162,11 +1199,13 @@
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
 				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				if (ptimer < 19800) visystyle_scene(2,shaderProgram_fsscene, bilogoTexture,0.01);     \
 				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);					\
 				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR); \
 			");
 
 			// starttime
