@@ -1261,21 +1261,8 @@
 				time = (frame_start_msec - demo_start_time - part_start_time);
 				if (seektime > 0) { time = seektime; seektime = -1; }	
 				
-				if (ptimer > beat_target) {
-					beat_target = beat_target + beat_time;
-					beat_counter = beat_counter + 1;
-					hitting = 0;
-				}
-
-				if ((beat_counter % 2) == 0 && hitting == 0) { beat = beat = 5.5; hitting = 1; }
-				
-				beat = beat - timedelta*beatfade;
-				if (beat < 0.0) beat = 0;
-
-				beat_runner_add = beat;
-
-				if (beat_runner_add < 0) beat_runner_add = 0;
-				beat_runner = beat_runner + (timedelta*beatfade*0.07)*beat;
+				beat = AudioPlayer.getAverageFFT(0,64);
+				beat_runner = beat_runner + beat;
 
 				document.getElementById('posValue').textContent = ptimer + " / " + "beat: " + beat + " beat_runner:" + beat_runner + " timedelta: " + timedelta;
 				document.getElementById('posSuffix').textContent = "";
