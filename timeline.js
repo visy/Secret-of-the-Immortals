@@ -22,7 +22,7 @@ var Timeline = function() {
 	setInterval(function() {
 	  self.update();
 	}, 1000/30);
-	Audioplayer.play();
+	audioPlay();	
 }   
 
 Timeline.currentInstance = null;     
@@ -207,7 +207,7 @@ function anim(targetName, targetObject, parentTimeline) {
   if (typeof(args[0]) == "string") {   
     name = args.shift();     
   }         
-                          
+  
   if (typeof(args[0]) == "object") {
     target = args.shift();    
   }                   
@@ -221,6 +221,7 @@ function anim(targetName, targetObject, parentTimeline) {
   else {
     timeline = Timeline.getGlobalInstance();
   }              
+                        
   
   var anim = new Anim(name, target, timeline);
    
