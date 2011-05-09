@@ -10,53 +10,6 @@
 	<script type="text/javascript" src="timeline-gui.js"></script> 
  
 <!-- fragment shader effects for fullscreen quad scenes !-->
-	<script id="shaderfs_curvescene" type="x-shader/x-fragment">
-		#ifdef GL_ES
-		precision highp float;
-		#endif
- 		
-		uniform float time;
-		uniform float width;
-		uniform float height;
- 	
-		void main(void) {
-			vec2 resolution;
-			resolution.x = width;
-			resolution.y = height;
-			
-			float myTime = time*0.00007;
-
-			vec2 p = (2.5*gl_FragCoord.xy-resolution)/resolution.y;
-	 
-			p.y = p.y + atan(myTime*p.x*13.7*cos(myTime*0.8*p.y))*cos(p.y+myTime)*cos(p.x-myTime);
-			p.x = p.x + cos(myTime+p.y*26.3*sin(myTime*0.87*p.y))*sin(p.x+myTime)*sin(p.y-myTime);
-
-			float col2 = cos(gl_FragCoord.x*(5.5-cos(atan(p.x+gl_FragCoord.y)*0.05+sin(p.y-p.x-myTime)*p.y*0.1+myTime*0.05)*5.55)-myTime*26.0+atan(p.y*10.0+myTime*10.0*(p.x)*p.y))*atan(gl_FragCoord.y*4.5+myTime*0.5);
-
-			float col3 = col2+p.x*0.01;
-			float col4 = col2+p.y*0.01;
-
-			if (col2 > abs(cos(myTime*10.0+cos(gl_FragCoord.y+myTime-p.x*0.03)))) col2 = 1.0;
-			else col2 = 0.0;
-			if (col3 > abs(sin(myTime*10.0+sin(gl_FragCoord.x+myTime-p.x*0.01)))) col3 = 1.0;
-			else col3 = 0.0;
-			if (col4 > abs(tan(myTime*10.0+tan(gl_FragCoord.y+myTime-p.y*0.02)))) col4 = 1.0;
-			else col4 = 0.0;
-
-			float r = cos(p.x+myTime)*col2*col2;
-			float g = sin(p.y+myTime)*col2*col3;
-			float b = atan(p.x+myTime)*col2*col4;
-			if (g < 0.0) g = 0.0;
-			if (b < 0.0) b = 0.0;
-
-			gl_FragColor = vec4(
-				(atan(myTime+p.x)*r-b*col2*p.x)*0.3,
-				(g-r*col3*p.y)*0.2,
-				(b-g*col4*p.x*atan(myTime))*0.5,
-				1.0);
-			}
-	</script> 
- 
 	<script id="shaderfs_mankeliscene" type="x-shader/x-fragment"> 
  
 #ifdef GL_ES
@@ -623,7 +576,6 @@
 		
 			float myTime = time * 0.0004;
  
- 
 			vec2 p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*3.0;
  
 			// avaruuseffu
@@ -659,6 +611,51 @@
 			float vb = cos(cal)*0.4+ata*0.2-z2;
  
 			gl_FragColor = vec4(ccc.r-ccc2.g+vr, ccc.g-ccc2.b+vb, ccc.b-ccc2.r+vg, 0.2);
+		}
+	</script> 
+ 
+	<script id="shaderfs_curvescene" type="x-shader/x-fragment">
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+
+		uniform float time;
+		uniform float width;
+		uniform float height;
+
+		void main(void) {
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+			
+			float myTime = time*0.00007;
+
+			vec2 p = (2.0*gl_FragCoord.xy-resolution)/resolution.y;
+	 
+			p.y = p.y + atan(myTime*p.x*13.7*cos(myTime*0.8*p.y))*cos(p.y+myTime)*cos(p.x-myTime);
+			p.x = p.x + cos(myTime+p.y*26.3*sin(myTime*0.87*p.y))*sin(p.x+myTime)*sin(p.y-myTime);
+
+			float col2 = cos(gl_FragCoord.x*(5.5-cos(atan(p.x+gl_FragCoord.y)*0.05+sin(p.y-p.x-myTime)*p.y*0.1+myTime*0.05)*5.55)-myTime*26.0+atan(p.y*10.0+myTime*10.0*(p.x)*p.y))*atan(gl_FragCoord.y*4.5+myTime*0.5);
+
+			float col3 = col2+p.x*0.01;
+			float col4 = col2+p.y*0.01;
+
+			if (col2 > abs(cos(myTime*10.0+cos(gl_FragCoord.y+myTime-p.x*0.03)))) col2 = 1.0;
+			else col2 = 0.0;
+			if (col3 > abs(sin(myTime*10.0+sin(gl_FragCoord.x+myTime-p.x*0.01)))) col3 = 1.0;
+			else col3 = 0.0;
+			if (col4 > abs(tan(myTime*10.0+tan(gl_FragCoord.y+myTime-p.y*0.02)))) col4 = 1.0;
+			else col4 = 0.0;
+
+			float r = cos(p.x+myTime)*col2*col2;
+			float g = sin(p.y+myTime)*col2*col3;
+			float b = atan(p.x+myTime)*col2*col4;
+			if (g < 0.0) g = 0.0;
+			if (b < 0.0) b = 0.0;
+
+			gl_FragColor = vec4((atan(myTime+p.x)*r-b*col2*p.x)*0.3,(g-r*col3*p.y)*0.2,(b-g*col4*p.x*atan(myTime))*0.5,1.0);
 		}
 	</script> 
  
@@ -928,7 +925,12 @@
  		
 	    	return shader;
 	  	}
- 		
+
+ 		function getObjectName(obj) {
+			var tmp = obj.toString();
+			return tmp.substring(tmp.indexOf(' ')+1,tmp.indexOf('('));
+		}
+
 	  	var shaderProgram_fsscene;
 	  	var shaderProgram_blurdeformscene;
 	  	var shaderProgram_convo;
@@ -947,7 +949,7 @@
  
 			gl.linkProgram(shaderProgram);
 			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-				alert("Bilotrip DarumaGL fail: Could not initialise shader program: " + shaderProgram);
+				alert("Bilotrip DarumaGL fail: Could not initialise shader program");
 				alert(gl.getProgramInfoLog(shaderProgram));
 			}
 		}
@@ -978,7 +980,8 @@
 			shaderProgram_fractalscene = gl.createProgram();
 			shaderProgram_mankeliscene = gl.createProgram();
 			shaderProgram_curvescene = gl.createProgram();
-	
+
+			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad);	
 			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_blurdeformscene, fragmentShader_blurdeformscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad);	
@@ -989,7 +992,6 @@
 			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad);	
 	  	}
  
 		var spaceTexture;
