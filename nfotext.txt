@@ -49,7 +49,12 @@ _____________________________________________________.__________________________
 
              a sequel to counter intelligence program
  
-             effects            ilmarque + mankeli + visy
+             visuals            mankeli + oasiz + visy
              music              zov
              music player       parker kane 
              ascii + css + html zax
+
+             samples "holy mountain" by alejandro jodorowsky
+
+             uses timeline.js for animation syncronization. some shaders adapted from 
+             public sources. contact, as usual vp79799 at gmail.com
