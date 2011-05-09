@@ -1468,8 +1468,10 @@
 			var visible = pos.style.visibility;
 			if(visible == "hidden") {
 				pos.style.visibility = "visible";
+				Timeline.getGlobalInstance().container.style.visibility = "visible";
 			} else {
 				pos.style.visibility = "hidden";
+				Timeline.getGlobalInstance().container.style.visibility = "hidden";
 			}				
 		}
 		function isSpace(e)
