@@ -439,11 +439,10 @@
 				{
 					vec4 cc = vec4(0.0,0.0,0.0,0.0);
 
-					cc += vec4(1.0-tan(float(n*20)*0.1)*0.2*sin(sin(myTime*0.6)+p.x*0.2+float(n)), cos(float(n*10)*0.2)*sin(myTime*0.3+p.y*0.4+float(n)+myTime*0.6)*0.7, cos(float(n*3)*cos(sin(myTime*0.7)+p4.x*0.03+p.y*0.2)*0.1), 0.0) - (sin(float(n*2)*2.1+cos(myTime*0.3)*p4.x*0.002) + 0.2+float(n/3)*0.05);
+					cc += vec4(1.0-tan(float(n*20)*0.1)*0.2*sin(sin(myTime*0.4)+p.x*0.15+float(n)), cos(float(n*3)*0.2)*sin(myTime*0.3+p.y*0.4+float(n)+myTime*0.6)*0.3, cos(float(n*2)*cos(sin(myTime*0.7)+p4.x*0.03+p.y*0.2)*0.1), 0.0) - (sin(float(n*2)*2.1+cos(myTime*0.3)*p4.x*0.002) + 0.2+float(n/3)*0.05);
 					cc -= vec4(1.0-cos(float(n*18)*0.1)*0.2*cos(p3.x*0.02+float(n)), cos(float(n*10)*0.2)*sin(p3.y*0.002+float(n))*0.2, cos(float(n*1)*cos(p3.x)*0.1), 0.0) - (sin(float(n*2)*2.1+myTime*1.3*p3.x) + 0.2+float(n/3)*0.05);
 
-
-					if (cc.r > 0.1) gl_FragColor=(vec4(cc.r,cc.r,cc.r,cc.g)+vec4(cc.r,cc.g,cc.b,cc.a)-vec4(cc.b,cc.b,cc.b,cc.a));
+					gl_FragColor=(vec4(cc.r,cc.r,cc.r,cc.g)+vec4(cc.r,cc.g,cc.b,cc.a)-vec4(cc.b,cc.b,cc.b,cc.a));
 
 					break;
 				}
