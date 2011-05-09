@@ -419,6 +419,64 @@
 		}
 			
 	</script> 
+		<script id="shaderfs_blurdeformscene" type="x-shader/x-fragment"> 
+			precision highp float;
+			precision highp vec3;
+			precision highp mat3;
+			precision highp vec2;
+			precision highp mat2;
+			
+			float myTime;
+
+			uniform float time;
+			uniform float width;
+			uniform float height;
+			uniform sampler2D s2d;
+			uniform float alpha;
+			uniform float layer_alpha;
+
+		vec3 deform( in vec2 p, float scale )
+		{
+		vec2 uv;
+
+		float mtime = scale+myTime;
+		float a = atan(p.y+tan(mtime)*mtime*0.1,p.x+cos(mtime)*mtime*0.1);
+		float r = sqrt(dot(p,p));
+		float s = r * (1.0+0.45*cos(mtime*1.7));
+
+		uv.x = .1*mtime +.04*p.y+.05*cos(-mtime+a*3.0)/s;
+		uv.y = .1*mtime +.04*p.x+.05*sin(-mtime+a*3.0)/s;
+
+		float w = 0.8-0.2*cos(mtime+3.0*a);
+
+		vec3 res = texture2D(s2d,uv).xyz*w;
+		return  res*res;
+
+		}
+
+		void main(void)
+		{
+		vec2 resolution;
+
+		resolution.x = width;
+		resolution.y = height;
+		myTime = time * 0.0001;
+		vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / (resolution.xy);
+		vec3 total = vec3(0.0);
+		float w = 0.0;
+		for( int i=0; i<20; i+=2 )
+		{
+		vec3 res = deform(p,w);
+		total += res;
+		w += 0.1;
+		}
+		total /= 20.0;
+
+		gl_FragColor = vec4( 78.0*total,0.2);
+		}
+
+		
+</script> 
 
 	<script id="shaderfs_fractalscene" type="x-shader/x-fragment">
 		precision highp float;
@@ -872,6 +930,7 @@
 	  	}
  		
 	  	var shaderProgram_fsscene;
+	  	var shaderProgram_blurdeformscene;
 	  	var shaderProgram_convo;
 	  	var shaderProgram_avaruusscene;
 	  	var shaderProgram_blurspacescene;
@@ -895,6 +954,7 @@
  
 	  	function initShaders() {
 			var fragmentShader_fsscene = getShader(gl, "shaderfs_fsscene");
+			var fragmentShader_blurdeformscene = getShader(gl, "shaderfs_blurdeformscene");
 			var fragmentShader_convo = getShader(gl, "shaderfs_convo");
 			var fragmentShader_avaruusscene = getShader(gl, "shaderfs_avaruusscene");
 			var fragmentShader_blurspacescene = getShader(gl, "shaderfs_blurspacescene");
@@ -908,6 +968,7 @@
 			var vertexShader_fsquad = getShader(gl, "shadervs_fsquad");
  
 			shaderProgram_fsscene = gl.createProgram();
+			shaderProgram_blurdeformscene = gl.createProgram();
 			shaderProgram_convo = gl.createProgram();
 			shaderProgram_avaruusscene = gl.createProgram();
 			shaderProgram_blurspacescene = gl.createProgram();
@@ -919,6 +980,7 @@
 			shaderProgram_curvescene = gl.createProgram();
 	
 			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
+			linkshader(shaderProgram_blurdeformscene, fragmentShader_blurdeformscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad);	
 			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_blurspacescene, fragmentShader_blurspacescene, vertexShader_fsquad);	
@@ -1505,10 +1567,13 @@
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
 
+				if (!(ptimer >= 120500 && ptimer < 160800))
+				fs_scene(0,shaderProgram_blurdeformscene, rttTexture,0.01, 1.0, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);
 				fs_scene(0,shaderProgram_fsscene, rttTexture,0.01, 1.0, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
-				gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR);
-				fs_scene(0,shaderProgram_convo, rttTexture,0.01, 1.0, timefromstart, gl.viewportWidth, gl.viewportHeight, 0, sharpkernel);
 
 				gl.finish();
 
