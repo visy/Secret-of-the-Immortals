@@ -9,7 +9,54 @@
 	<script type="text/javascript" src="timeline.js"></script>
 	<script type="text/javascript" src="timeline-gui.js"></script> 
  
-<!-- fragment shader effects for fullscreen quad scenes !--> 
+<!-- fragment shader effects for fullscreen quad scenes !-->
+	<script id="shaderfs_curvescene" type="x-shader/x-fragment">
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+ 	
+		void main(void) {
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+			
+			float myTime = time*0.00007;
+
+			vec2 p = (2.5*gl_FragCoord.xy-resolution)/resolution.y;
+	 
+			p.y = p.y + atan(myTime*p.x*13.7*cos(myTime*0.8*p.y))*cos(p.y+myTime)*cos(p.x-myTime);
+			p.x = p.x + cos(myTime+p.y*26.3*sin(myTime*0.87*p.y))*sin(p.x+myTime)*sin(p.y-myTime);
+
+			float col2 = cos(gl_FragCoord.x*(5.5-cos(atan(p.x+gl_FragCoord.y)*0.05+sin(p.y-p.x-myTime)*p.y*0.1+myTime*0.05)*5.55)-myTime*26.0+atan(p.y*10.0+myTime*10.0*(p.x)*p.y))*atan(gl_FragCoord.y*4.5+myTime*0.5);
+
+			float col3 = col2+p.x*0.01;
+			float col4 = col2+p.y*0.01;
+
+			if (col2 > abs(cos(myTime*10.0+cos(gl_FragCoord.y+myTime-p.x*0.03)))) col2 = 1.0;
+			else col2 = 0.0;
+			if (col3 > abs(sin(myTime*10.0+sin(gl_FragCoord.x+myTime-p.x*0.01)))) col3 = 1.0;
+			else col3 = 0.0;
+			if (col4 > abs(tan(myTime*10.0+tan(gl_FragCoord.y+myTime-p.y*0.02)))) col4 = 1.0;
+			else col4 = 0.0;
+
+			float r = cos(p.x+myTime)*col2*col2;
+			float g = sin(p.y+myTime)*col2*col3;
+			float b = atan(p.x+myTime)*col2*col4;
+			if (g < 0.0) g = 0.0;
+			if (b < 0.0) b = 0.0;
+
+			gl_FragColor = vec4(
+				(atan(myTime+p.x)*r-b*col2*p.x)*0.3,
+				(g-r*col3*p.y)*0.2,
+				(b-g*col4*p.x*atan(myTime))*0.5,
+				1.0);
+			}
+	</script> 
+ 
 	<script id="shaderfs_mankeliscene" type="x-shader/x-fragment"> 
  
 #ifdef GL_ES
@@ -833,6 +880,7 @@
 	  	var shaderProgram_letterscene;
 	  	var shaderProgram_fractalscene;
 		var shaderProgram_mankeliscene;
+	  	var shaderProgram_curvescene;
  
 		function linkshader(shaderProgram, fragmentShader, vertexShader) {
 			gl.attachShader(shaderProgram, fragmentShader);
@@ -855,6 +903,7 @@
 			var fragmentShader_letterscene = getShader(gl, "shaderfs_letterscene");
 			var fragmentShader_fractalscene = getShader(gl, "shaderfs_fractalscene");
 			var fragmentShader_mankeliscene = getShader(gl, "shaderfs_mankeliscene");
+			var fragmentShader_curvescene = getShader(gl, "shaderfs_curvescene");
  
 			var vertexShader_fsquad = getShader(gl, "shadervs_fsquad");
  
@@ -867,6 +916,7 @@
 			shaderProgram_letterscene = gl.createProgram();
 			shaderProgram_fractalscene = gl.createProgram();
 			shaderProgram_mankeliscene = gl.createProgram();
+			shaderProgram_curvescene = gl.createProgram();
 	
 			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad);	
@@ -877,6 +927,7 @@
 			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad);	
 			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad);	
+			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad);	
 	  	}
  
 		var spaceTexture;
@@ -1057,14 +1108,16 @@
 			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
 
 		// timeline values
-			shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
-			if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
-			shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
-			if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
-			shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
-			if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
-			shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
-			if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			if (tl[part_counter][layer]) {
+				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			}
 		///////////////////////
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
@@ -1161,14 +1214,16 @@
 			}
 
 		// timeline values
-			shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
-			if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
-			shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
-			if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
-			shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
-			if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
-			shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
-			if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			if (tl[part_counter][layer]) {
+				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			}
  
 			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
  		
@@ -1278,7 +1333,7 @@
 			anim("scene3_marcher",scene3_marcher).to({"x":100},0).to({"x":1000},42);
 			anim("scene3_marcher",scene3_marcher).to({"y":100},0).to({"y":1000},42);
 			anim("scene3_marcher",scene3_marcher).to({"z":100},0).to({"z":1000},42);
-			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},25.449999999999996).to({"amount":0.9797005351473923},34.94, Timeline.Easing.Quadratic.EaseIn).to({"amount":0},18.360000000000014, Timeline.Easing.Quadratic.EaseIn).to({"amount":2},21.682463614823575, Timeline.Easing.Cubic.EaseOut).to({"amount":3},0.49736842105264145, Timeline.Easing.Cubic.EaseIn).to({"amount":4},0.6252631578947501, Timeline.Easing.Cubic.EaseIn).to({"amount":5},0.6110526315789286, Timeline.Easing.Cubic.EaseIn).to({"amount":6},0.539999999999992, Timeline.Easing.Cubic.EaseIn).to({"amount":6},2.9273684210526483, Timeline.Easing.Cubic.EaseIn).to({"amount":2},2.074736842105267, Timeline.Easing.Cubic.EaseIn).to({"amount":1},12.891746911492191, Timeline.Easing.Cubic.EaseIn).to({"amount":0.9},14.782499999999999, Timeline.Easing.Cubic.EaseOut);
+			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},25.449999999999996).to({"amount":0.9797005351473923},34.94, Timeline.Easing.Quadratic.EaseIn).to({"amount":0},18.360000000000014, Timeline.Easing.Quadratic.EaseIn).to({"amount":2},21.682463614823575, Timeline.Easing.Cubic.EaseOut).to({"amount":3},0.49736842105264145, Timeline.Easing.Cubic.EaseIn).to({"amount":4},0.6252631578947501, Timeline.Easing.Cubic.EaseIn).to({"amount":5},0.6110526315789286, Timeline.Easing.Cubic.EaseIn).to({"amount":6},0.4916749165053318, Timeline.Easing.Cubic.EaseIn).to({"amount":6},2.6999999999999886, Timeline.Easing.Cubic.EaseIn).to({"amount":2},4.860000000000014, Timeline.Easing.Cubic.EaseIn).to({"amount":1},10.664999999999992, Timeline.Easing.Cubic.EaseIn).to({"amount":0.98},17.887500000000017);
 
 			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0).to({"alpha":1},0).to({"alpha":0},79.71762840153528).to({"alpha":0.660790273556231},22.74000000000001).to({"alpha":0.2},9.539999999999992).to({"alpha":0.3},10.800000000000011);
 			anim("convolution",convolution).to({"effect":1},0).to({"effect":1},12.690000000000001).to({"effect":1},3.780000000000001).to({"effect":1},28.350000000000005).to({"effect":5},75.17999999999999).to({"effect":10},49);
@@ -1354,10 +1409,19 @@
 			");
 
 			effects.push(120500);
-			effects.push(182000);
+			effects.push(160800);
 
-			effects.push("endDemo()");
-			effects.push(182000);
+			effects.push(" 								\
+				gl.enable(gl.BLEND); \
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(1,shaderProgram_mankeliscene, rttTexture, 0.01, 1.00, timefromstart); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(1,shaderProgram_curvescene, spaceTexture, 0.01); \
+			");
+
+			effects.push(160800);
 			effects.push(10000000);
 
 			sharpkernel = new Array(0, 1, 0,   1, -4, 1,   0, 1, 0);
