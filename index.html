@@ -351,6 +351,8 @@
 		uniform float alpha;
 		uniform float layer_alpha;
  	
+		uniform float z;
+
 		void main(void)
 		{
 			vec2 resolution;
@@ -362,7 +364,7 @@
 			
 			c = (gl_FragCoord.xy / resolution.xy);
 
-			vec4 d = texture2D(s2d, c);
+			vec4 d = texture2D(s2d, c*z);
 
 			if (layer_alpha > 0.0)
 				gl_FragColor = vec4(d.r, d.g, d.b, layer_alpha);
@@ -997,6 +999,8 @@
 		var spaceTexture;
 		var letterTexture;
 		var bilogoTexture;
+		var eyeTexture;
+
  
 		function initTextures() {
 			spaceTexture = gl.createTexture();
@@ -1023,6 +1027,14 @@
 			} 
 
 		    	bilogoTexture.image.src = "bilogo.png";
+
+			eyeTexture = gl.createTexture();
+			eyeTexture.image = new Image();
+			eyeTexture.image.onload = function() {
+				handleLoadedTexture_eye(eyeTexture)
+			} 
+
+		    	eyeTexture.image.src = "eye.png"
 		}
  
 		  function handleLoadedTexture_space(texture) {
@@ -1048,9 +1060,17 @@
 		    gl.bindTexture(gl.TEXTURE_2D, texture);
 		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		    gl.generateMipmap(gl.TEXTURE_2D);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+
+		  function handleLoadedTexture_eye(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 		    gl.bindTexture(gl.TEXTURE_2D, null);
 		  }
  	
@@ -1366,6 +1386,8 @@
 			tl[2][1] = {x: 0, y: 0, z: 0};
 			tl[2][2] = {x: 0, y: 0, z: 0};
 
+			tl[3][1] = {z:0};
+
 			// timeline anim objects
 
 			var scene1_space = new Object;
@@ -1373,12 +1395,14 @@
 			var scene1_bilogo = new Object;
 			var scene2_fractal = new Object;
 			var scene3_marcher = new Object;
+			var scene4_eye = new Object;
 
 			scene1_space = tl[0][0];
 			scene1_psyke = tl[0][1];
 			scene1_bilogo = tl[0][2];
 			scene2_fractal = tl[1][1];
 			scene3_marcher = tl[2][0];
+			scene4_eye = tl[3][1];
 
 			feedback.push({amount:0, alpha:0});
 			convolution.push({effect:0});
@@ -1386,21 +1410,22 @@
 			// cut and paste export to here 
 			anim("scene1_space",scene1_space).to({"x":100},0).to({"x":1000},11);
 			anim("scene1_space",scene1_space).to({"y":10},0).to({"y":1000},43.5);
-			anim("scene1_space",scene1_space).to({"z":0},0).to({"z":1},43.5, Timeline.Easing.Cubic.EaseOut);
+			anim("scene1_space",scene1_space).to({"z":1},0).to({"z":1},40.5, Timeline.Easing.Cubic.EaseOut);
 			anim("scene1_psyke",scene1_psyke).to({"x":10},0).to({"x":10000},59);
 			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
-			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},56);
+			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},41.5);
 			anim("scene1_bilogo",scene1_bilogo).to({"layer_alpha":0},0).to({"layer_alpha":1},16.200000000000003);
 			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},2.524563170694975).to({"x":-0.1},2.533846153846156, Timeline.Easing.Cubic.EaseOut).to({"x":-0.8},14.538461538461533).to({"x":0.1},1.8276923076923168, Timeline.Easing.Quadratic.EaseIn).to({"x":0.5},7.6033211654046085).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
 			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.159947786079606, Timeline.Easing.Cubic.EaseOut).to({"y":0.4},8.598461538461521).to({"y":0},3.73846153846155).to({"y":0},11.043129136997337, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
 			anim("scene2_fractal",scene2_fractal).to({"z":10},0).to({"z":10},38).to({"z":10},5).to({"z":9},16.5).to({"z":9},0.697276371715617).to({"z":15},18.648825260517825).to({"z":0.007420094043132498},2.6169230769230722, Timeline.Easing.Cubic.EaseOut).to({"z":0.9062022177296598},0.19285962694306136, Timeline.Easing.Back.EaseIn).to({"z":50},16.956000000000017, Timeline.Easing.Back.EaseOut).to({"z":10},15.012).to({"z":10},88.8761156639004);
-			anim("scene3_marcher",scene3_marcher).to({"x":100},0).to({"x":1000},42);
-			anim("scene3_marcher",scene3_marcher).to({"y":100},0).to({"y":1000},42);
-			anim("scene3_marcher",scene3_marcher).to({"z":100},0).to({"z":1000},42);
+			anim("scene3_marcher",scene3_marcher).to(121.5,{"x":0},0).to({"x":0},62.5);
+			anim("scene3_marcher",scene3_marcher).to(121.5,{"y":0},0).to({"y":0},61.5);
+			anim("scene3_marcher",scene3_marcher).to(-1.5,{"z":1},0).to({"z":1},122.5).to({"z":1},38);
 			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},25.449999999999996).to({"amount":0.9797005351473923},34.94, Timeline.Easing.Quadratic.EaseIn).to({"amount":0},18.360000000000014, Timeline.Easing.Quadratic.EaseIn).to({"amount":2},21.682463614823575, Timeline.Easing.Cubic.EaseOut).to({"amount":3},0.49736842105264145, Timeline.Easing.Cubic.EaseIn).to({"amount":4},0.6252631578947501, Timeline.Easing.Cubic.EaseIn).to({"amount":5},0.6110526315789286, Timeline.Easing.Cubic.EaseIn).to({"amount":6},0.4916749165053318, Timeline.Easing.Cubic.EaseIn).to({"amount":6},2.6999999999999886, Timeline.Easing.Cubic.EaseIn).to({"amount":2},4.860000000000014, Timeline.Easing.Cubic.EaseIn).to({"amount":1},10.664999999999992, Timeline.Easing.Cubic.EaseIn).to({"amount":0.98},17.887500000000017);
-
 			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0).to({"alpha":1},0).to({"alpha":0},79.71762840153528).to({"alpha":0.660790273556231},22.74000000000001).to({"alpha":0.2},9.539999999999992).to({"alpha":0.3},10.800000000000011);
+			anim("scene4_eye",scene4_eye).to(158.40163263881547,{"z":2},0).to({"z":-0.997},22.09836736118453);
 			anim("convolution",convolution).to({"effect":1},0).to({"effect":1},12.690000000000001).to({"effect":1},3.780000000000001).to({"effect":1},28.350000000000005).to({"effect":5},75.17999999999999).to({"effect":10},49);
+			anim("dummy",dummy).to({"dummy":0},0).to({"dummy":0},0);
 
 
 
@@ -1456,6 +1481,8 @@
 			effects.push(39600);
 			effects.push(120500);
 
+			// scene 3
+
 			effects.push(" 								\
 				gl.enable(gl.BLEND); \
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
@@ -1475,20 +1502,22 @@
 			effects.push(120500);
 			effects.push(160800);
 
+			// scene 4
+
 			effects.push(" 								\
 				gl.enable(gl.BLEND); \
-			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
-				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
-				visystyle_scene(1,shaderProgram_mankeliscene, rttTexture, 0.01, 1.00, timefromstart); \
+				visystyle_scene(0,shaderProgram_mankeliscene, rttTexture, 0.01, 1.00, timefromstart); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
+				visystyle_scene(1,shaderProgram_fsscene, eyeTexture, 0.01, 0.3); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
-				visystyle_scene(1,shaderProgram_curvescene, spaceTexture, 0.01); \
+				visystyle_scene(0,shaderProgram_curvescene, spaceTexture, 0.01); \
 			");
 
 			effects.push(160800);
 			effects.push(10000000);
 
-			sharpkernel = new Array(0, 1, 0,   1, -4, 1,   0, 1, 0);
+			sharpkernel = new Array(0, -1, 0,   -1, 5, -1,   0, -1, 0);
 
 			Timeline.getGlobalInstance().loop(-1);
 		}
@@ -1573,9 +1602,9 @@
 				gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
 
 				if (!(ptimer >= 120500 && ptimer < 160800))
-				fs_scene(0,shaderProgram_blurdeformscene, rttTexture,0.01, 1.0, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
+				fs_scene(0,shaderProgram_blurdeformscene, rttTexture,0.01, 0.99, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);
-				fs_scene(0,shaderProgram_fsscene, rttTexture,0.01, 1.0, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
+				fs_scene(0,shaderProgram_convo, rttTexture,0.01, 0.8, timefromstart, gl.viewportWidth, gl.viewportHeight, 0, sharpkernel);
 
 				gl.finish();
 
