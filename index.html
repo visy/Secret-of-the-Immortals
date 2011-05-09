@@ -1339,13 +1339,19 @@
 				visystyle_scene(0,shaderProgram_blurspacescene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				visystyle_scene(1,shaderProgram_mankeliscene, rttTexture, 0.01); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
 			");
 
 			effects.push(120500);
-			effects.push(175000);
+			effects.push(182000);
 
 			effects.push("endDemo()");
-			effects.push(175000);
+			effects.push(182000);
 			effects.push(10000000);
 
 			sharpkernel = new Array(0, 1, 0,   1, -4, 1,   0, 1, 0);
