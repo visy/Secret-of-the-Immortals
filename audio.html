@@ -969,8 +969,24 @@
 	  	var shaderProgram_fractalscene;
 		var shaderProgram_mankeliscene;
 	  	var shaderProgram_curvescene;
+
+		function getVertices(z) {
+			return new Float32Array([
+				0.0, 2.15-z, 4.0,
+				-3.0, 2.15-z, 4.0,
+				-3.0, -3.0+z, 4.0,
+
+				-3.0, -3.0+z, 4.0,
+				3.0, -3.0+z, 4.0,
+				0.0, 2.15-z, 4.0,
+
+				0.0, 2.15-z, 4.0,
+				3.0, 2.15-z, 4.0,
+				3.0, -3.0+z, 4.0
+			]);
+		}
  
-		function linkshader(shaderProgram, fragmentShader, vertexShader) {
+		function linkshader(shaderProgram, fragmentShader, vertexShader, type) {
 			gl.attachShader(shaderProgram, fragmentShader);
 			gl.attachShader(shaderProgram, vertexShader);
  
@@ -978,6 +994,54 @@
 			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
 				alert("Bilotrip DarumaGL fail: Could not initialise shader program");
 				alert(gl.getProgramInfoLog(shaderProgram));
+			} else {
+				gl.useProgram(shaderProgram);
+
+				var vertexPosition = gl.getAttribLocation(shaderProgram, "vertexPosition");
+			
+				gl.enableVertexAttribArray(vertexPosition);
+				gl.bufferData(gl.ARRAY_BUFFER, getVertices(0.0), gl.STATIC_DRAW);
+
+				if (type == 0) { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
+				else { scw = gl.viewportWidth; gl.viewportHeight; }
+			
+				var fieldOfView = 20.0;
+				var aspectRatio = scw / sch;
+				var nearPlane = 1.0;
+				var farPlane = 10000.0;
+				var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
+				var bottom = -top;
+				var right = top * aspectRatio;
+				var left = -right;
+	 
+				var a = (right + left) / (right - left);
+				var b = (top + bottom) / (top - bottom);
+				var c = (farPlane + nearPlane) / (farPlane - nearPlane);
+				var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
+				var x = (2 * nearPlane) / (right - left);
+				var y = (2 * nearPlane) / (top - bottom);
+				var perspectiveMatrix = [
+					x, 0, a, 0,
+					0, y, b, 0,
+					0, 0, c, d,
+					0, 0, -1, 0
+				];
+	 
+				var modelViewMatrix = [
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1
+				];
+	 
+				var vertexPosAttribLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
+				gl.vertexAttribPointer(vertexPosAttribLocation, 3.0, gl.FLOAT, false, 0, 0);
+	 
+				var uModelViewMatrix = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
+				var uPerspectiveMatrix = gl.getUniformLocation(shaderProgram, "perspectiveMatrix");
+	 
+				gl.uniformMatrix4fv(uModelViewMatrix, false, new Float32Array(perspectiveMatrix));
+				gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
 			}
 		}
  
@@ -1008,17 +1072,17 @@
 			shaderProgram_mankeliscene = gl.createProgram();
 			shaderProgram_curvescene = gl.createProgram();
 
-			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad);	
-			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_blurdeformscene, fragmentShader_blurdeformscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad);	
-			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_blurspacescene, fragmentShader_blurspacescene, vertexShader_fsquad);	
-			linkshader(shaderProgram_analogscene, fragmentShader_analogscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_psykescene, fragmentShader_psykescene, vertexShader_fsquad);	
-			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad);	
-			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad);	
+			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_blurdeformscene, fragmentShader_blurdeformscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_blurspacescene, fragmentShader_blurspacescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_analogscene, fragmentShader_analogscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_psykescene, fragmentShader_psykescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad, 0);	
 	  	}
  
 		var spaceTexture;
@@ -1192,22 +1256,6 @@
 		     };
 		})();
 
-		function getVertices(z) {
-			return new Float32Array([
-				0.0, 2.15-z, 4.0,
-				-3.0, 2.15-z, 4.0,
-				-3.0, -3.0+z, 4.0,
-
-				-3.0, -3.0+z, 4.0,
-				3.0, -3.0+z, 4.0,
-				0.0, 2.15-z, 4.0,
-
-				0.0, 2.15-z, 4.0,
-				3.0, 2.15-z, 4.0,
-				3.0, -3.0+z, 4.0
-			]);
-		}
- 
 		function visystyle_scene(layer, shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
  
 			if (!alpha) alpha = 1.0;
@@ -1218,10 +1266,6 @@
 			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
 
 			gl.useProgram(shaderProgram);
- 
-			var vertexPosition = gl.getAttribLocation(shaderProgram, "vertexPosition");
- 		
-			gl.enableVertexAttribArray(vertexPosition);
  	
 			shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
 			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
@@ -1258,46 +1302,6 @@
  
 			gl.uniform1f(shaderProgram.alphaUniform, alpha);
  
-			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
- 		
-			var fieldOfView = 20.0;
-			var aspectRatio = scw / sch;
-			var nearPlane = 1.0;
-			var farPlane = 10000.0;
-			var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
-			var bottom = -top;
-			var right = top * aspectRatio;
-			var left = -right;
- 
-			var a = (right + left) / (right - left);
-			var b = (top + bottom) / (top - bottom);
-			var c = (farPlane + nearPlane) / (farPlane - nearPlane);
-			var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
-			var x = (2 * nearPlane) / (right - left);
-			var y = (2 * nearPlane) / (top - bottom);
-			var perspectiveMatrix = [
-				x, 0, a, 0,
-				0, y, b, 0,
-				0, 0, c, d,
-				0, 0, -1, 0
-			];
- 
-			var modelViewMatrix = [
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			];
- 
-			var vertexPosAttribLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
-			gl.vertexAttribPointer(vertexPosAttribLocation, 3.0, gl.FLOAT, false, 0, 0);
- 
-			var uModelViewMatrix = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
-			var uPerspectiveMatrix = gl.getUniformLocation(shaderProgram, "perspectiveMatrix");
- 
-			gl.uniformMatrix4fv(uModelViewMatrix, false, new Float32Array(perspectiveMatrix));
-			gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
- 	
 			gl.drawArrays(gl.TRIANGLES, 0, 9);
 
 	  	}
@@ -1312,11 +1316,7 @@
 			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
 
 			gl.useProgram(shaderProgram);
- 
-			var vertexPosition = gl.getAttribLocation(shaderProgram, "vertexPosition");
- 		
-			gl.enableVertexAttribArray(vertexPosition);
- 	
+
 			shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
 			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
 			shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
@@ -1361,46 +1361,6 @@
 				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
 			}
  
-			gl.bufferData(gl.ARRAY_BUFFER, getVertices(z), gl.STATIC_DRAW);
- 		
-			var fieldOfView = 20.0;
-			var aspectRatio = scw / sch;
-			var nearPlane = 1.0;
-			var farPlane = 10000.0;
-			var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
-			var bottom = -top;
-			var right = top * aspectRatio;
-			var left = -right;
- 
-			var a = (right + left) / (right - left);
-			var b = (top + bottom) / (top - bottom);
-			var c = (farPlane + nearPlane) / (farPlane - nearPlane);
-			var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
-			var x = (2 * nearPlane) / (right - left);
-			var y = (2 * nearPlane) / (top - bottom);
-			var perspectiveMatrix = [
-				x, 0, a, 0,
-				0, y, b, 0,
-				0, 0, c, d,
-				0, 0, -1, 0
-			];
- 
-			var modelViewMatrix = [
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			];
- 
-			var vertexPosAttribLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
-			gl.vertexAttribPointer(vertexPosAttribLocation, 3.0, gl.FLOAT, false, 0, 0);
- 
-			var uModelViewMatrix = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
-			var uPerspectiveMatrix = gl.getUniformLocation(shaderProgram, "perspectiveMatrix");
- 
-			gl.uniformMatrix4fv(uModelViewMatrix, false, new Float32Array(perspectiveMatrix));
-			gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
- 	
 			gl.drawArrays(gl.TRIANGLES, 0, 9);
 
 	  	}
@@ -1578,7 +1538,7 @@
 
 			effects.push(202800);
 			effects.push(10000000);
-
+		
 			sharpkernel = new Array(0, -1, 0,   -1, 5, -1,   0, -1, 0);
 
 			Timeline.getGlobalInstance().loop(-1);
@@ -1629,6 +1589,7 @@
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
 		
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2]) {
+ 
 					eval(effects[effect_pointer]);
 				} else {
 					effect_pointer+=3;
