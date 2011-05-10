@@ -1434,6 +1434,7 @@
 			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
 			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},41.5);
 			anim("scene1_bilogo",scene1_bilogo).to({"layer_alpha":0},0).to({"layer_alpha":1},16.200000000000003);
+
 			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},2.524563170694975).to({"x":-0.1},2.533846153846156, Timeline.Easing.Cubic.EaseOut).to({"x":-0.8},14.538461538461533).to({"x":0.1},1.8276923076923168, Timeline.Easing.Quadratic.EaseIn).to({"x":0.5},7.6033211654046085).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
 			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.159947786079606, Timeline.Easing.Cubic.EaseOut).to({"y":0.4},8.598461538461521).to({"y":0},3.73846153846155).to({"y":0},11.043129136997337, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
 			anim("scene2_fractal",scene2_fractal).to({"z":10},0).to({"z":10},38).to({"z":10},5).to({"z":9},16.5).to({"z":9},0.697276371715617).to({"z":15},18.648825260517825).to({"z":0.007420094043132498},2.6169230769230722, Timeline.Easing.Cubic.EaseOut).to({"z":0.9062022177296598},0.19285962694306136, Timeline.Easing.Back.EaseIn).to({"z":50},16.956000000000017, Timeline.Easing.Back.EaseOut).to({"z":10},15.012).to({"z":10},88.8761156639004);
@@ -1461,8 +1462,8 @@
 				gl.enable(gl.BLEND); 						\
 			gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR);					\
 				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
-			gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);					\
-				visystyle_scene(2,shaderProgram_fsscene, bilogoTexture,0.01);     \
+			gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA);					\
+				visystyle_scene(2,shaderProgram_fsscene, bilogoTexture,0.01, 1.00);     \
 			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
 				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);					\
