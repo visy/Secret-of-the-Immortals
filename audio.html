@@ -7,6 +7,7 @@
 
 	var audio;
 	var audio_position = 0;
+	var audio_inited = 0;
 
 	function audioUpdatePos() {
 		audio_position = audio.currentTime*1000;
@@ -14,11 +15,9 @@
 
 	function initAudio() {
 		audio = document.createElement('audio');
-		audio.src = 'song.mp3';
-		audio.controls = false;
-		audio_position = 0;
-		audio.addEventListener('timeupdate', audioUpdatePos);
-		document.body.appendChild(audio);
+		audio.setAttribute('src', 'song.ogg');
+		audio.load();
+		audio_inited = 1;
 	}
 
 	function audioPlay() {
@@ -26,8 +25,10 @@
 	}
 
 	function audioPos() {
-		audio_position = audio.currentTime*1000;
-		return audio_position;
+		if (audio_inited == 1) {
+			audio_position = audio.currentTime*1000;
+			return audio_position;
+		} else return 0;
 	}
 
 	</script>
@@ -1569,7 +1570,8 @@
 		}
 
 	  	function drawScene() {
-				var ptimer = audioPos();
+				var ptimer = 0;
+				if (audio_inited == 1) ptimer = audioPos();
 				var frame_start_msec = 0;
 
 				frame_start_msec = ptimer;
@@ -1645,7 +1647,7 @@
 			initEffects();	
 	
 			demo_start_time = 0;
-			drawScene();
+			requestAnimFrame(drawScene);
 	  	}
 	</script> 
 	<script type="text/javascript"> 
