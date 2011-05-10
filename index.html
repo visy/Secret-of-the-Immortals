@@ -364,7 +364,7 @@
 			
 			c = (gl_FragCoord.xy / resolution.xy);
 
-			vec4 d = texture2D(s2d, c*z);
+			vec4 d = texture2D(s2d, c*z)*1.1;
 
 			if (layer_alpha > 0.0)
 				gl_FragColor = vec4(d.r, d.g, d.b, layer_alpha);
