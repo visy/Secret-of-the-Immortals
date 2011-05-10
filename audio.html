@@ -1149,8 +1149,9 @@
 		    gl.bindTexture(gl.TEXTURE_2D, texture);
 		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		    gl.generateMipmap(gl.TEXTURE_2D);
 		    gl.bindTexture(gl.TEXTURE_2D, null);
 		  }
 
@@ -1158,8 +1159,8 @@
 		    gl.bindTexture(gl.TEXTURE_2D, texture);
 		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		    gl.bindTexture(gl.TEXTURE_2D, null);
 		  }
 
@@ -1169,6 +1170,8 @@
 		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
 		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		    gl.generateMipmap(gl.TEXTURE_2D);
 		    gl.bindTexture(gl.TEXTURE_2D, null);
 		  }
 
@@ -1610,8 +1613,6 @@
 				gl.viewport(0, 0,rttFramebuffer.width, rttFramebuffer.height);
 				fs_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
 	
-				gl.bindTexture(gl.TEXTURE_2D, rttTexture);
-				gl.generateMipmap(gl.TEXTURE_2D);
 
 				gl.bindTexture(gl.TEXTURE_2D, null);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
