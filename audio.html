@@ -1578,10 +1578,6 @@
 				
 				beat = 0.0;
 				if (beat > 0.2) beat_runner = beat_runner + beat;
-
-				document.getElementById('posValue').textContent = "UNFINISHED WORK COPY, DO _NOT_ SPREAD " + ptimer + " / " + "beat: " + beat + " beat_runner:" + beat_runner + " timedelta: " + timedelta;
-				document.getElementById('posSuffix').textContent = "";
-				
  
 				var timefromstart = (new Date().getTime() - demo_start_time);
 				
@@ -1633,11 +1629,16 @@
 
 			} else {
 				// loaderi tähän
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 				gl.clearColor(0.0, 0.0, 0.0, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+
 				requestAnimFrame(drawScene);
 			}	
 	  	}
@@ -1656,70 +1657,7 @@
 	  	}
 	</script> 
 	<script type="text/javascript"> 
-		function toggleGUI() {
-			var el = document.getElementById("pos");
-			var visible = pos.style.visibility;
-			if(visible == "hidden") {
-				pos.style.visibility = "visible";
-				Timeline.getGlobalInstance().container.style.visibility = "visible";
-			} else {
-				pos.style.visibility = "hidden";
-				Timeline.getGlobalInstance().container.style.visibility = "hidden";
-			}				
-		}
-		function isSpace(e)
-		{
-			var keynum;
-			var keychar;
-			var check;
- 
-			if(window.event) // IE
-			{
-				keynum = e.keyCode;
-			}
-			else if(e.which) // Netscape/Firefox/Opera
-			{
-				keynum = e.which;
-			}
-			keychar = String.fromCharCode(keynum);
-			check = " ";
-			return (check == keychar);
-		}
-	</script> 
-	<script type="text/javascript"> 
-		function BrowserSize() {
-  			if( typeof( window.innerWidth ) == 'number' ) {
-    			//Non-IE
-    			this.width = window.innerWidth;
-    			this.height = window.innerHeight;
-  			} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-    			//IE 6+ in 'standards compliant mode'
-    			this.width = document.documentElement.clientWidth;
-    			this.height = document.documentElement.clientHeight;
-  			} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-    			//IE 4 compatible
-    			this.width = document.body.clientWidth;
-    			this.height = document.body.clientHeight;
-  			}
-			this.noOverflowWidth = this.width - 4;
-			this.noOverflowHeight = this.height - 4;
-		}
-			BrowserSize.prototype.width;
-			BrowserSize.prototype.noOverflowWidth;
-			BrowserSize.prototype.height;
-			BrowserSize.prototype.noOverflowHeight;
-		
-		var canvas = null;
-		var container = null;
-		var browserSize = new BrowserSize();
-
 		function init() {
-			container = document.getElementById("container");
-			canvas = document.getElementById("bilocanvas");
-			container.style.width = browserSize.noOverflowWidth + "px";
-			container.style.height = browserSize.noOverflowHeight + "px";
-			canvas.width = container.offsetWidth-8;
-			canvas.height = container.offsetHeight-8;
 			initAudio();	
 			webGLStart();
 		}
@@ -1727,32 +1665,11 @@
 	<style type="text/css"> 
 		body {
 			background-color: black;
-		}
-		* {
 			margin: 0px;
 			padding: 0px;
 		}
-		#container {
-			width: 100%;
-			background: #000000;
-			margin: auto;
-			border: none;
-			margin-top: 4px;
-		}
 		#bilocanvas {
 			background: #000000;
-			border: 0;
-		}
-		#flashContent {
-			display: none;
-			text-align: left;
-		}
-		#pos {
-			color: white;
-			position: absolute;
-			top: 4px;
-			left: 8px;
-			z-index: 100;
 		}
 	</style> 
 	<script type="text/javascript">
@@ -1760,16 +1677,7 @@
 	</script> 
 </head> 
  
-<body onresize="window.location.reload(true);" onkeypress="if(isSpace(event)) toggleGUI();"> 
-	<div id="container"> 
-		
-		<!-- USER INTERFACE --> 
-		
-		<div id ="pos"><span id="posPrefix">Preloading: </span> <span id="posValue"></span> <span id="posSuffix">%</span></div> 
-		
-		<!-- WEBGL CONTENT --> 
-		
-		<canvas id="bilocanvas"></canvas> 
-	</div> 
+<body onresize="window.location.reload(true);"> 
+	<canvas id="bilocanvas" width="512" height="512" style = "width:100%; height:99.5%"></canvas> 
 </body> 
 </html> 
