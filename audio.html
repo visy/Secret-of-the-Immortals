@@ -13,11 +13,16 @@
 		audio_position = audio.currentTime*1000;
 	}
 
+	function audioReady() {
+		audio_inited = 1;
+	}
+
 	function initAudio() {
 		audio = document.createElement('audio');
 		audio.setAttribute('src', 'song.ogg');
+		audio.addEventListener('playing', audioReady, false);
+		audio.controls = false;
 		audio.load();
-		audio_inited = 1;
 	}
 
 	function audioPlay() {
@@ -33,7 +38,6 @@
 
 	</script>
 	<script type="text/javascript" src="timeline_noflash.js"></script>
-	<script type="text/javascript" src="timeline-gui.js"></script> 
  
 <!-- fragment shader effects for fullscreen quad scenes !-->
 	<script id="shaderfs_mankeliscene" type="x-shader/x-fragment"> 
@@ -1043,6 +1047,19 @@
 	 
 				gl.uniformMatrix4fv(uModelViewMatrix, false, new Float32Array(perspectiveMatrix));
 				gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
+ 	
+				shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
+				shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
+				shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
+				shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
+				shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
+				shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
+
+				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+ 
 			}
 		}
  
@@ -1270,14 +1287,6 @@
 			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
 
 			gl.useProgram(shaderProgram);
- 	
-			shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
-			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
-			shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
-			shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
-			shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
-			shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
- 
  
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
@@ -1293,13 +1302,9 @@
 
 		// timeline values
 			if (tl[part_counter][layer]) {
-				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
 				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
-				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
 				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
-				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
 				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
-				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
 				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
 			}
 		///////////////////////
@@ -1320,13 +1325,6 @@
 			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
 
 			gl.useProgram(shaderProgram);
-
-			shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
-			shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
-			shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
-			shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
-			shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
-			shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
 
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
@@ -1355,13 +1353,9 @@
 
 		// timeline values
 			if (tl[part_counter][layer]) {
-				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
 				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
-				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
 				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
-				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
 				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
-				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
 				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
 			}
  
@@ -1573,6 +1567,7 @@
 		}
 
 	  	function drawScene() {
+			if (audio_inited == 1) {
 				var ptimer = 0;
 				if (audio_inited == 1) ptimer = audioPos();
 				var frame_start_msec = 0;
@@ -1635,7 +1630,16 @@
 				timedelta = (ptimer-frame_start_msec);
 				timefromlast = (ptimer - part_start_time);
 				requestAnimFrame(drawScene);
-			
+
+			} else {
+				// loaderi tähän
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+				requestAnimFrame(drawScene);
+			}	
 	  	}
  
  
