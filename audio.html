@@ -87,7 +87,8 @@
         		dir = r * dir;
  
 			gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
-			gl_FragColor = textureCube(scube, dir);
+			vec4 cube = textureCube(scube,dir);
+			gl_FragColor = vec4(cube.r, cube.g, cube.b, 1.0);
 		}
 
 	</script>
@@ -1716,8 +1717,6 @@
 				visystyle_scene(1,shaderProgram_fsscene, eyeTexture, 0.01, 0.3); \
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
 				visystyle_scene(0,shaderProgram_curvescene, spaceTexture, 0.01); \
-			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
-				skybox_scene(2,shaderProgram_skyboxscene, skyboxCube, 0.01); \
 			");
 
 			effects.push(160800);
@@ -1731,8 +1730,6 @@
 				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
 				visystyle_scene(1,shaderProgram_fsscene, catTexture, 0.01, Math.cos(time*0.03)); \
-			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
-				skybox_scene(2,shaderProgram_skyboxscene, skyboxCube, 0.01); \
 			");
 
 			effects.push(202800);
@@ -1816,6 +1813,9 @@
 
 				if (!(ptimer >= 120500 && ptimer < 160800))
 				fs_scene(0,shaderProgram_blurdeformscene, rttTexture,0.01, 0.99, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
+				if (ptimer > 202800) {
+					skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00);	
+				}
 				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);
 				fs_scene(0,shaderProgram_convo, rttTexture,0.01, 0.8, timefromstart, gl.viewportWidth, gl.viewportHeight, 0, sharpkernel);
 
