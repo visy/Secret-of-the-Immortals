@@ -2023,6 +2023,7 @@
 		}
 	</style> 
 	<script type="text/javascript">
+		$browser = $.browser.webkit ? '-webkit' : '-moz';
 		window.onload = init;
 	</script> 
 	<script type="text/javascript"> 
@@ -2107,6 +2108,107 @@
 			}
 			
 		}
+function csstrix() {
+			// part system
+			function next() {
+				flag[fi] = false;
+				flag.push(true);
+				fi++;
+				console.log('now playing: part '+ fi +', switch happened at '+ audioPos());
+				console.log();
+			}
+			// part schedule
+			if(flag[0] && audioPos() > 19700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 20s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2)');
+			} else if(flag[1] && audioPos() > 29100) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 8s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scaleX(4)');
+				setTimeout(function() {
+					$('#bilocanvas').css($browser+'-transition', 'all 1.8s ease-in');
+					$('#bilocanvas').css($browser+'-transform', 'scaleX(120)');
+					setTimeout(function() {
+						$('#bilocanvas').css($browser+'-transition', 'all 1.8s ease-in');
+						$('#bilocanvas').css('opacity', '0');
+					}, 1000);
+				}, 7700);
+			} else if(flag[2] && audioPos() > 39600) {
+				next();
+				$('#bilocanvas').css('opacity', '1');
+				$('#bilocanvas').css($browser+'-transition', '');
+				$('#text .credits').css('visibility', 'hidden');
+				$('#bilocanvas').css($browser+'-transform', 'scaleX(1) scale(1.9) rotate(90deg)');
+			} else if(flag[3] && audioPos() > 58000) {
+				next();
+				$('#bilocanvas').hide();
+				$('#text').css('visibility', 'visible');
+				$('#text .mkultra').css('visibility', 'visible');
+				setTimeout(function() {
+					$('#text').css('visibility', 'hidden');
+					$('#text .mkultra').css('visibility', 'hidden');
+					$('#bilocanvas').show();
+				}, 3600)
+			} else if(flag[4] && audioPos() > 61700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', '');
+				$('#bilocanvas').css($browser+'-transform', 'scale(1) rotate(0deg)');
+				setTimeout(function(){
+					$('#bilocanvas').css($browser+'-transition', 'all 18s ease-in');
+					$('#bilocanvas').css($browser+'-transform', 'scale(1.2)');
+					setTimeout(function(){
+						$('#bilocanvas').css($browser+'-transition', 'all 8s ease-in');
+						$('#bilocanvas').css($browser+'-transform', 'scale(2.0) rotate(-5deg)');
+						}, 12000);
+				}, 2000);
+			} else if(flag[5] && audioPos() > 81700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 20s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scale(1.0) rotate(0deg)');
+			} else if(flag[6] && audioPos() > 101300) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 20s ease-in');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2.0) rotate(7deg)');
+				$('#bilocanvas').css('left', '10%');
+			} else if(flag[7] && audioPos() > 120600) {
+				next();
+				$('#bilocanvas').css('left', '0px');
+				$('#bilocanvas').css($browser+'-transition', 'all 0.5s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2.1)');
+			} else if(flag[8] && audioPos() > 121100) {
+				next();
+				$('#bilocanvas').css($browser+'-transform', 'rotate(0deg)');
+				$('#bilocanvas').css($browser+'-transition', 'all 0.5s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2.2)');
+			} else if(flag[9] && audioPos() > 140000) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 20s ease-out');
+				$('#bilocanvas').css($browser+'-transform', 'scale(1)');
+			} else if(flag[10] && audioPos() > 160700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', '');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2)');
+			} else if(flag[11] && audioPos() > 200700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', '');
+				$('#bilocanvas').css($browser+'-transform', 'scale(1)');
+			} else if(flag[12] && audioPos() > 222700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 30s ease-out');
+				//$('#bilocanvas').css('left', '-17%');
+				$('#bilocanvas').css($browser+'-transform', 'scale(2.5)');
+			} else if(flag[13] && audioPos() > 252700) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 30s ease-in-out');
+				$('#bilocanvas').css($browser+'-transform', 'rotate(36000)');
+			} else if(flag[14] && audioPos() > 281300) {
+				next();
+				$('#bilocanvas').css($browser+'-transition', 'all 5.7s ease-in');
+				$('#bilocanvas').css('opacity', '0');
+			} 
+		}
+		setInterval(csstrix, 10);
 	</script>
 
 </head> 
