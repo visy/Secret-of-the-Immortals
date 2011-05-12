@@ -48,7 +48,6 @@
 
 	</script>
 	<script type="text/javascript" src="timeline_noflash.js"></script>
-	<script type="text/javascript" src="timeline-gui.js"></script>
  
 <!-- fragment shader effects for fullscreen quad scenes !-->
 	<script id="shaderfs_skybox" type="x-shader/x-fragment">
@@ -1208,8 +1207,7 @@
 		    		handleLoadedTexture_space(spaceTexture)
 		    	}
  
-		    	spaceTexture.image.src = "spacetexture.jpg";
- 
+		    	spaceTexture.image.src = "spacetexture.png";
  
 			letterTexture = gl.createTexture();
 			letterTexture.image = new Image();
@@ -1944,7 +1942,7 @@
 		}
 		#loader {
 			position: fixed;
-			background: blue;
+			background: #000055;
 			top: 0px;
 			bottom: 0px;
 			left: 0px;
@@ -2113,21 +2111,8 @@
  
 <body onresize="window.location.reload(true);" onkeypress="if(isSpace(event)) toggleGUI();"> 
 	<div id="container"> 
-		<div id="loader"> 
-			<span id="rewind">&lt;&lt;</span> 
-			<span id="time">04:20</span> 
-			<script type="text/javascript"> 
-				function loader(p) {
-					return '0'+(Math.floor(4-4*p/100)+1)+':';
-				}
-				var loading = 0;
-				var e = $('#time');
-				var loaderi = setInterval(function() {
-					loading = loading+1;
-					console.log(loader(loading));
-					e.innerHTML = loader(loading);
-				}, 100);
-			</script> 
+		<div id="loader">
+			<img src = "videomoduuli.png" style="position:absolute; padding-top: 5%; width:100%; height:80%"/> 
 		</div> 
 		<canvas id="bilocanvas" width="512" height="512"></canvas> 
 		<div id="text"> 
