@@ -45,16 +45,28 @@ _____________________________________________________.__________________________
 
              - hidden words of bilotrip    a silent whisper in the wind -  
 
-             mkultra by bilotrip
+             mkultra
 
              a sequel to counter intelligence program
  
-             visuals            mankeli + oasiz + visy
+             visuals            mankeli + oasiz + visy + zax
              music              zov
-             music player       parker kane 
              ascii + css + html zax
 
              samples "holy mountain" by alejandro jodorowsky
 
+             used a flash music player by parker kane/evoflash during development
+             release version uses html5 + css3 + webgl, tested to work with chrome 10 and ff4
+
+             uses a royalty-free typeface from 1001fonts
+
              uses timeline.js for animation syncronization. some shaders adapted from 
-             public sources. contact, as usual vp79799 at gmail.com
+             public sources. contact, as usual, is vp79799 at gmail.com
+
+             tools used during the production of this demo:
+
+             lysergic acid diethylamide
+             4-hydroxyl-dimethyltryptamine
+             2,5-dimethoxy-4-ethylphenethylamine
+
+             greetings to satori, flo, pwp, htel and trilobit.
