@@ -35,6 +35,10 @@
 		audio_position = audio.currentTime*1000;
 	}
 
+	function audioStop() {
+		audio.stop();
+	}
+
 	function initAudio() {
 		audio = document.createElement('audio');
 		audio.setAttribute('src', 'song.ogg');
@@ -74,6 +78,7 @@
 		uniform float height;
 		uniform float alpha;
 		uniform samplerCube scube;
+		uniform sampler2D s2d;
 
 		void main(void) {
 	
@@ -105,10 +110,15 @@
         		r[2][2] = cos(a);
         		pos = r * pos;
         		dir = r * dir;
+
+			vec4 d = texture2D(s2d, pixpos)*(abs(0.4*cos(myTime*0.25)));
  
 			gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
 			vec4 cube = textureCube(scube,dir);
-			gl_FragColor = vec4(cube.r-(1.0-alpha), cube.g-(1.0-alpha), cube.b-(1.0-alpha), alpha);
+
+			vec4 endc = vec4(cube.b+d.b, cube.g+d.r, cube.r+d.g, alpha);
+	
+			gl_FragColor = endc;
 		}
 
 	</script>
@@ -1498,6 +1508,10 @@
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_CUBE_MAP, currentTexture);
 			gl.uniform1i(gl.getUniformLocation(shaderProgram, "scube"), 0);
+
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 1);
  
 			gl.uniform1f(shaderProgram.widthUniform, scw);
 			gl.uniform1f(shaderProgram.heightUniform, sch);	
@@ -1570,8 +1584,11 @@
 	  	}
  
 		function endDemo() {
- 
-			// do something here, like stop the music
+			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+
+			gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 		}
  
 		var effects = [];
@@ -1749,16 +1766,20 @@
 				gl.enable(gl.BLEND); \
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
 				render_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
-				if (ptimer > 202800) { \
-				gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_COLOR); \
-skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00, timefromstart, rttTexture.width, rttTexture.height, 0); \				} \
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
 				render_scene(1,shaderProgram_fsscene, catTexture, 0.01, Math.cos(time*0.03)); \
+			gl.disable(gl.BLEND); \
+				if (ptimer > 202800) { \
+skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00, timefromstart, rttTexture.width, rttTexture.height, 0); \				} \
 			");
 
 			effects.push(202800);
-			effects.push(10000000);
+			effects.push(287000);
 		
+			effects.push("endDemo();");
+			effects.push(287000);
+			effects.push(1000000);
+
 			sharpkernel = new Array(0, -1, 0,   -1, 5, -1,   0, -1, 0);
 
 			Timeline.getGlobalInstance().loop(-1);
@@ -1806,7 +1827,7 @@ skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00, timefromstart,
 				
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-				finetime = new Date().getTime()-finetime_start;
+				finetime = (new Date().getTime()-finetime_start);
 
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2]) {
 					eval(effects[effect_pointer]);
@@ -1849,6 +1870,7 @@ skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00, timefromstart,
 				timedelta = (ptimer-frame_start_msec);
 				timefromlast = (ptimer - part_start_time);
 				runSubtitles();
+				if (ptimer > 287000) audioStop();
 				requestAnimFrame(drawScene);
 
 			} else {
@@ -1918,7 +1940,6 @@ skybox_scene(0,shaderProgram_skyboxscene, skyboxCube, 0.01, 1.00, timefromstart,
 				initAudio();	
 				webGLStart();
 				$('#text').css('fontSize', browserSize.height*0.110 +'px');
-				clearInterval(loaderi);
 			}, 1000);
 		}
 	</script>
