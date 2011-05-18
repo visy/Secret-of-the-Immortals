@@ -118,7 +118,7 @@
 
 			cube-=vec4(alpha, alpha, alpha, 0.0);
 
-			vec4 endc = vec4(cube.r+d.r, cube.g, cube.b, d.a-cube.r*beat);
+			vec4 endc = vec4(cube.r+d.r*beat, cube.g-beat, d.a+cube.b*beat, beat*0.25+d.a-cube.r);
 	
 			gl_FragColor = endc;
 		}
