@@ -75,6 +75,7 @@
 		uniform float time;
 		uniform float width;
 		uniform float height;
+		uniform float beat;
 		uniform float alpha;
 		uniform samplerCube scube;
 		uniform sampler2D s2d;
@@ -117,7 +118,7 @@
 
 			cube-=vec4(alpha, alpha, alpha, 0.0);
 
-			vec4 endc = vec4(cube.r+d.r, cube.g, cube.b, d.a-cube.r);
+			vec4 endc = vec4(cube.r+d.r, cube.g, cube.b, d.a-cube.r*beat);
 	
 			gl_FragColor = endc;
 		}
@@ -1437,9 +1438,10 @@
 		var low = 0; 
 		var beat = 0;
 		var demo_beattime = 618.55670*4; // 97bpm
-        	var next_beattime = demo_beattime;
+        	var next_beattime = demo_beattime/2;
 		var beatstart = 0;
         	var beatend = 0;
+		var beatflip = 1;
 		var beat_runner = 0;
  
 		var fadecounter = 0;
@@ -1837,14 +1839,19 @@
 				time = (frame_start_msec - demo_start_time - part_start_time);
 				if (seektime > 0) { time = seektime; seektime = -1; }	
 				
-				beat = lerp(1,0,beatstart,beatend,ptimer);
+				audiotime = audioPos();
+				if (beatflip == 1)
+				beat = lerp(1,0,beatstart,beatend,audiotime);
+				else 
+				beat = lerp(0,1,beatstart,beatend,audiotime);
 
-				Timeline.Easing.Quadratic.EaseInOut(beat);
-
-				if (ptimer >= next_beattime) {
-				    beatstart = ptimer;
-				    next_beattime+=demo_beattime;
+				if (audiotime >= next_beattime) {
+				    beatstart = audiotime;
+				    if (beatflip == 1)
+				    next_beattime+=demo_beattime/2;
+				    else next_beattime+=demo_beattime/2;
 				    beatend = next_beattime;
+				    beatflip = -beatflip;
 				}
 
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
