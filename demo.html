@@ -1794,14 +1794,14 @@
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
 				render_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
 			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
-				if (ptimer < 280000) render_scene(1,shaderProgram_fsscene, catTexture, 0.01, Math.cos(time*0.03)); \
+				if (ptimer < 273300) render_scene(1,shaderProgram_fsscene, catTexture, 0.01, Math.cos(time*0.03)); \
 			");
 
 			effects.push(202800);
-			effects.push(285500);
+			effects.push(283300);
 		
 			effects.push("endDemo();");
-			effects.push(285500);
+			effects.push(283300);
 			effects.push(1000000);
 
 			sharpkernel = new Array(-1, -1, 1,   -1, 6, 1,   -1, -1, 1);
@@ -1966,8 +1966,8 @@
 			initGL(canvas);
 			initFramebuffer();
 			initShaders();
-			initTextures();
 			initEffects();	
+			initTextures();
 	
 			demo_start_time = 0;
 			requestAnimFrame(drawScene);
