@@ -66,7 +66,7 @@ Timeline.prototype.update = function() {
 
   if (this.playing) {
     
-    var audiopos = audioPos();
+    var audiopos = finePos();
     this.totalTime += this.prevTime-(audiopos/1000);   
     this.prevTime = this.time;
     this.time = audiopos/1000;

@@ -1,0 +1,1714 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Bilotrip WebGL basecode</title> 
+
+	<script type="text/javascript">
+
+	var audio;
+	var audio_position = 0;
+	var audio_inited = 0;
+
+	function audioUpdatePos() {
+		audio_position = audio.currentTime*1000;
+	}
+
+	function audioReady() {
+		audio_inited = 1;
+	}
+
+	function initAudio() {
+		audio = document.createElement('audio');
+		audio.setAttribute('src', 'song.ogg');
+		audio.addEventListener('playing', audioReady, false);
+		audio.controls = false;
+		audio.load();
+	}
+
+	function audioPlay() {
+		audio.play();
+	}
+
+	function audioPos() {
+		if (audio_inited == 1) {
+			audio_position = audio.currentTime*1000;
+			return audio_position;
+		} else return 0;
+	}
+
+	</script>
+	<script type="text/javascript" src="timeline_noflash.js"></script>
+ 
+<!-- fragment shader effects for fullscreen quad scenes !-->
+	<script id="shaderfs_mankeliscene" type="x-shader/x-fragment"> 
+ 
+#ifdef GL_ES
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 
+#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float beat;
+		uniform float beat_runner;
+
+		varying vec2 pixpos;
+ 
+		int objid;
+		
+		vec3 ball1,ball2,ball3;
+ 	
+ 		float fuckfunk(vec3 pos)
+ 		{
+ 		
+				float myTime = time * 0.0007;
+
+ 				float distball = sqrt(dot(pos, pos)) - 1.4;
+ 				float dbo = distball;
+ 			
+				float tt = abs(atan(myTime*0.2)*0.4);
+	
+				float loaddone = 0.66-cos(beat_runner+tt*1.0)*0.2;
+
+ 				distball -= sin(pos.y * 4.0 + tt * 4.0) * cos(myTime*1.0*pos.x)*2.2 * clamp((tt-0.4)*1.6,0.0,1.0);
+				
+				distball += texture2D(s2d, pos.xy * vec2(0.5, 1.0) + vec2(0.2, 0.4) * pos.z).r * 0.1;
+				//distball += textureCube(s2d, pos.xyz).r * 0.1;
+ 
+				float bs = 2.0;
+				float bsy = 0.4;
+				float bof = 2.6 - pow(2.7, -loaddone * 3.0) * 1.6;
+ 
+				float mixrat = sin(  clamp(loaddone - 0.7,0.0,0.3) *(3.14159/0.3));
+ 
+
+				float a = pos.y * mixrat;
+				mat2 r = mat2(1);
+        			r[0][0] = cos(a);
+        			r[1][0] = sin(a);
+        			r[0][1] = -sin(a);
+        			r[1][1] = cos(a);
+        			vec3 pos2 = pos;
+        			pos2.xz = r * pos.xz;
+ 
+				pos2.y -= bof;
+				float distbox1 = max(max(abs(pos2.x) - bs, abs(pos2.y) - bsy), abs(pos2.z) - bs);
+				distbox1 += texture2D(s2d, pos2.xy).r * 0.1;
+ 
+				pos2.y += 2.0*bof;
+				float distbox2 = max(max(abs(pos2.x) - bs, abs(pos2.y) - bsy), abs(pos2.z) - bs);
+				//distbox2 += textureCube(s2d, pos2.xyz).r * 0.1;
+ 
+				float distbox = min(distbox1, distbox2);
+ 
+				
+				pos2 = pos - vec3(0.0, bof - bsy, 0.0);
+ 				float distball1 = sqrt(dot(pos2, pos2)) - 1.4;
+ 				
+				pos2 = pos + vec3(0.0, bof - bsy, 0.0);
+ 				float distball2 = sqrt(dot(pos2, pos2)) - 1.4;
+				
+				float distballcut = -min(distball1, distball2);
+ 
+				objid = 0;
+ 
+				//float rdist = max(distbox, distballcut);
+ 
+				//float mixrat = clamp((loaddone - 0.7)*3.333, 0.0, 1.0);
+				//distballcut = mix(distballcut, -10.0, mixrat);
+				
+				float rdist = distbox;
+ 
+ 
+//				rdist -= mix(0.0, sin(pos.y * 5.0 + myTime * 10.0), mixrat);
+ 
+				if (distballcut > rdist)
+				{
+					objid = 2;
+					rdist = distballcut;
+				}
+				
+//				rdist = mix(rdist, distbox3, mixrat);
+ 
+ 
+ 
+				if (distball < rdist)
+				{
+					objid = 1;
+					rdist = distball;
+				}
+				
+				
+ 
+		
+				return rdist;
+ 		}
+ 
+		void main(void) {
+		
+			float myTime = time * 0.0001;
+		
+			vec3 pos = vec3(0.0, 0.0, -10.0);
+			vec3 dir = normalize(vec3(pixpos, 2.0));
+/*
+			float a2 = myTime * 0.43;
+			mat3 r2 = mat3(1);
+        		r2[1][1] = cos(a2);
+        		r2[2][1] = sin(a2);
+        		r2[1][2] = -sin(a2);
+        		r2[2][2] = cos(a2);
+        		pos = r2 * pos;
+        		dir = r2 * dir;
+*/
+			float a = myTime;
+			mat3 r = mat3(1);
+        		r[0][0] = cos(a);
+        		r[2][0] = sin(a);
+        		r[0][2] = -sin(a);
+        		r[2][2] = cos(a);
+        		pos = r * pos;
+        		dir = r * dir;
+ 
+			gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
+			//gl_FragColor = vec4(0.0,0.0,0.0, 0.0);
+			
+			float totaldist = 0.0;
+			bool hit = false;
+			int lastid;
+			int lastiter;
+			
+			for (int i = 40; i < 100; i+=10)
+			{
+ 
+				float rdist = fuckfunk(pos);
+				
+				if (rdist < 0.001)
+				{
+					lastid = objid;
+					hit = true;
+					lastiter = i;
+					break;
+				}
+				
+				rdist = max(rdist, totaldist * 0.001);
+ 
+				pos += dir * rdist;
+				totaldist += rdist;
+				
+				if (totaldist > 90.0)
+					break;
+			}
+			
+			if (hit)
+			{
+					vec2 texcoords;
+					
+/*					 float veclen = length(pos);
+					texcoords = pos.xy / veclen;
+					gl_FragColor = texture2D(s2d, texcoords);
+*///					gl_FragColor.xyz *= pos.xyz * 0.5 + vec3(0.5,0.5,0.5);
+					
+					
+					vec3 dx = vec3(0.01, 0.0, 0.0);
+					vec3 dy = vec3(0.0, 0.01, 0.0);
+					vec3 dz = vec3(0.0, 0.0, 0.01);
+					
+					vec3 px1 = pos - dx;
+					vec3 px2 = pos + dx;
+					vec3 py1 = pos - dy;
+					vec3 py2 = pos + dy;
+					vec3 pz1 = pos - dz;
+					vec3 pz2 = pos + dz;
+					
+					vec3 normal = vec3(
+					fuckfunk(px2)-fuckfunk(px1),
+					fuckfunk(py2)-fuckfunk(py1), 
+					fuckfunk(pz2)-fuckfunk(pz1));
+					
+					normal = normalize(normal);
+ 
+//					texcoords = normal.xy;
+//					gl_FragColor = texture2D(s2d, texcoords);
+ 
+        				vec3 lightdir = normalize(vec3(3.8,5.8,-1.0));
+        				//lightdir = r * lightdir;
+ 
+					float light = clamp(dot(normal, lightdir)*1.5, 0.4, 1.0);
+					float speclight = 1.0;
+					
+					totaldist = 0.0;
+					
+/*					pos += lightdir * 0.1;
+ 
+					for (int i = 0; i < 80; i+=1)
+					{
+						float rdist = fuckfunk(pos);
+						
+						if (rdist < 0.001)
+						{
+							light *= 0.5;
+							speclight = 0.0;
+							break;
+						}
+						
+						rdist = max(rdist, length(pos) * 0.001);
+		
+						pos += lightdir * rdist;
+						totaldist += rdist;
+						
+						if (totaldist > 90.0)
+							break;
+					}
+*/
+ 
+					if (lastid == 1)
+					{
+						gl_FragColor = vec4(dir.y*1.8, dir.x*1.5, dir.x*1.8, 0.8-beat*0.1);
+						gl_FragColor.xyz *= light;
+					
+						float specular = pow(clamp(dot(reflect(dir, normal),lightdir),1.0,1.0),1.0);
+						gl_FragColor.xyz += vec3(sin(dir.x), cos(dir.x), sin(dir.y)) * specular * 0.3 * speclight;
+					}
+ 
+					
+					
+					
+					
+	
+			}
+ 
+			
+		}
+			
+	</script> 	
+
+	<script id="shaderfs_convo" type="x-shader/x-fragment">
+#ifdef GL_ES
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 
+#endif
+		#define KERNEL_SIZE 9
+
+		uniform sampler2D s2d;
+
+		uniform float width;
+		uniform float height;
+		uniform float kernel1;
+		uniform float kernel2;
+		uniform float kernel3;
+		uniform float kernel4;
+		uniform float kernel5;
+		uniform float kernel6;
+		uniform float kernel7;
+		uniform float kernel8;
+		uniform float kernel9;
+		uniform float effect;
+		uniform float alpha;
+
+		float step_w = effect/width;
+		float step_h = effect/height;
+
+		vec2 offset1 = vec2(-step_w, -step_h);
+		vec2 offset2 = vec2(0.0, -step_h);
+		vec2 offset3 = vec2(step_w, -step_h);
+		vec2 offset4 = vec2(-step_w, 0.0);
+		vec2 offset5 = vec2(0.0, 0.0);
+		vec2 offset6 = vec2(step_w, 0.0);
+		vec2 offset7 = vec2(-step_w, step_h);
+		vec2 offset8 = vec2(0.0, step_h);
+		vec2 offset9 = vec2(step_w, step_h);
+
+		void main(void) {
+			int i = 0;
+			vec4 sum = vec4(0.0);
+
+			vec2 resolution;
+			
+			resolution.x = width;
+			resolution.y = height;
+			vec2 c = (gl_FragCoord.xy / resolution.xy);
+
+			vec4 tmp = vec4(0.0);
+
+			tmp = texture2D(s2d, c + offset1);
+			sum += tmp * kernel1;
+			tmp = texture2D(s2d, c + offset2);
+			sum += tmp * kernel2;
+			tmp = texture2D(s2d, c + offset3);
+			sum += tmp * kernel3;
+			tmp = texture2D(s2d, c + offset4);
+			sum += tmp * kernel4;
+			tmp = texture2D(s2d, c + offset5);
+			sum += tmp * kernel5;
+			tmp = texture2D(s2d, c + offset6);
+			sum += tmp * kernel6;
+			tmp = texture2D(s2d, c + offset7);
+			sum += tmp * kernel7;
+			tmp = texture2D(s2d, c + offset8);
+			sum += tmp * kernel8;
+			tmp = texture2D(s2d, c + offset9);
+			sum += tmp * kernel9;
+
+			sum.a = alpha;
+
+			gl_FragColor = sum ; 
+		}
+
+
+	</script>
+
+	<script id="shaderfs_fsscene" type="x-shader/x-fragment"> 
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float alpha;
+		uniform float layer_alpha;
+ 	
+		uniform float z;
+
+		void main(void)
+		{
+			vec2 resolution;
+			
+			resolution.x = width;
+			resolution.y = height;
+ 
+			vec2 c, c2;
+			
+			c = (gl_FragCoord.xy / resolution.xy);
+
+			vec4 d = texture2D(s2d, c*z)*1.1;
+
+			if (layer_alpha > 0.0)
+				gl_FragColor = vec4(d.r, d.g, d.b, layer_alpha);
+			else
+				gl_FragColor = vec4(d.r, d.g, d.b, alpha);
+ 
+		}
+			
+	</script> 
+		<script id="shaderfs_blurdeformscene" type="x-shader/x-fragment"> 
+			precision highp float;
+			precision highp vec3;
+			precision highp mat3;
+			precision highp vec2;
+			precision highp mat2;
+			
+			float myTime;
+
+			uniform float time;
+			uniform float width;
+			uniform float height;
+			uniform sampler2D s2d;
+			uniform float alpha;
+			uniform float layer_alpha;
+
+		vec3 deform( in vec2 p, float scale )
+		{
+		vec2 uv;
+
+		float mtime = scale+myTime;
+		float a = atan(p.y+tan(mtime)*mtime*0.1,p.x+cos(mtime)*mtime*0.1);
+		float r = sqrt(dot(p,p));
+		float s = r * (1.0+0.45*cos(mtime*1.7));
+
+		uv.x = .1*mtime +.04*p.y+.05*cos(-mtime+a*3.0)/s;
+		uv.y = .1*mtime +.04*p.x+.05*sin(-mtime+a*3.0)/s;
+
+		float w = 0.8-0.2*cos(mtime+3.0*a);
+
+		vec3 res = vec3(cos(myTime)*0.03,sin(myTime*0.8)*0.02,0.0)+texture2D(s2d,uv).xyz*w;
+		return  res*res;
+
+		}
+
+		void main(void)
+		{
+		vec2 resolution;
+
+		resolution.x = width;
+		resolution.y = height;
+		myTime = time * 0.0001;
+		vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / (resolution.xy);
+		vec3 total = vec3(0.0);
+		float w = 0.0;
+		for( int i=0; i<20; i+=5 )
+		{
+		vec3 res = deform(p,w);
+		total += res;
+		w += 0.03;
+		}
+		total /= 20.0;
+
+		gl_FragColor = vec4( 78.0*total,0.2);
+		}
+
+		
+</script> 
+
+	<script id="shaderfs_fractalscene" type="x-shader/x-fragment">
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+ 		
+		uniform float time;
+		uniform float beat;
+		uniform float beat_runner;
+		uniform float width;
+		uniform float height;
+		
+		uniform float x;
+		uniform float y;
+		uniform float z;
+
+		uniform sampler2D s2d;
+
+		void main(void) {
+			vec2 resolution;
+			
+			resolution.x = width;
+			resolution.y = height;
+ 
+			vec2 p, p2;
+			vec2 p3, p4;
+			vec2 c;
+			float tt = time*0.0003;	
+
+			float myTime = time*0.0004;
+
+			c = (gl_FragCoord.xy / resolution.xy) - 0.5;
+			c.y *= (height / width);
+ 
+			float a = myTime*0.1;
+			mat2 r = mat2(1);
+			r[0][0] = cos(a);
+			r[1][0] = sin(a);
+			r[0][1] = -sin(a);
+			r[1][1] = cos(a);
+			c = r * c;
+        			
+			float oy;
+			oy = c.y;
+			
+			float zoomy = z;
+			
+			c *= 10.0 / zoomy;
+			c.x += x;
+			c.y += y;
+ 
+			for (int n = 300; n > 100; n-=10)
+			{
+				p2 = p;	
+				
+				p2.x+=cos(p.y*0.001+myTime*0.04+float(n)+cos(zoomy*0.004+float(n)*0.03)*20.0+tt*10.0)*0.03;
+				p = vec2(p.x * p.x - p.y * p.y, cos(myTime*0.2)*0.02+2.0 * p2.x * p2.y) + c;
+				p3 = vec2(p.x - p.x * p.y - p.y, cos(myTime*0.25)*0.03+2.0 * p2.x * p2.y) + c;
+				p4 = vec2(p.x * p.x - p.y * p.y+tt, cos(myTime*0.2)*0.02+2.0 * p2.x * p2.y) + c;
+ 
+
+				if (length(p) > (0.1+abs(cos(time*0.0003))*0.5+1.3+cos((float(n/2)+p.y*(cos(tt*0.5)*8.0+c.y+p.x)*p.x)+cos(tt*0.3+myTime*0.4))*0.30))
+				{
+					vec4 cc = vec4(0.0,0.0,0.0,0.0);
+
+					cc += vec4(1.0-tan(float(n*20)*0.1)*0.2*sin(sin(myTime*0.4)+p.x*0.15+float(n)), cos(float(n*3)*0.2)*sin(myTime*0.3+p.y*0.4+float(n)+myTime*0.6)*0.3, cos(float(n*2)*cos(sin(myTime*0.7)+p4.x*0.03+p.y*0.2)*0.1), 0.0) - (sin(float(n*2)*2.1+cos(myTime*0.3)*p4.x*0.002) + 0.2+float(n/3)*0.05);
+					cc -= vec4(1.0-cos(float(n*18)*0.1)*0.2*cos(p3.x*0.02+float(n)), cos(float(n*10)*0.2)*sin(p3.y*0.002+float(n))*0.2, cos(float(n*1)*cos(p3.x)*0.1), 0.0) - (sin(float(n*2)*2.1+myTime*1.3*p3.x) + 0.2+float(n/3)*0.05);
+
+					gl_FragColor=(vec4(cc.r,cc.r,cc.r,cc.g)+vec4(cc.r,cc.g,cc.b,cc.a)-vec4(cc.b,cc.b,cc.b,cc.a));
+
+					break;
+				}
+			}
+		}
+	</script>
+ 
+	<script id="shaderfs_psykescene" type="x-shader/x-fragment"> 
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float beat;
+		uniform float beat_runner;
+
+		uniform float x;
+		uniform float y;
+		uniform float z;
+ 	
+		void main(void) {
+	
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+ 
+			float myTime = time * 0.0002; 
+ 
+			vec2 p = -resolution.xy + abs(cos((atan(gl_FragCoord.x*0.1)*cos(gl_FragCoord.y*0.01+myTime)*0.2*myTime)*1.3+sin(gl_FragCoord.x*0.01+z*0.3)+tan(gl_FragCoord.x*0.0002))*5.01) * gl_FragCoord.xy / resolution.xy * resolution.xy;
+ 
+
+			p.x = p.x + x;
+			p.y = p.y + y;
+ 
+			float c1 = atan(p.x*0.1+p.y*0.2+myTime*0.7)*cos(p.y*myTime*0.85)*0.6;
+			float c2 = sin(c1+p.y*0.002+p.x*0.003+myTime*0.7)*sin(p.x*0.01-myTime*0.8)*0.6;
+			float c3 = cos(c2+p.x*0.002+p.y*0.001+myTime*0.5)*atan(p.y*0.001-myTime*0.9)*0.4;
+ 
+			vec4 collyvec = vec4(c1*c3,c3*c2,c3*c2,0.3)-vec4(c1-c3,c3*c1,c2*c1,0.2)*vec4(c3,c1,c3,0.1);
+ 
+ 
+			float c = cos((p.x*0.001)+myTime*10.0)*0.3;
+			vec4 vignette = vec4(c,c,c,abs(cos(myTime*0.3)*0.1));
+ 
+			gl_FragColor = ((collyvec) * vignette);
+		}
+	</script> 
+	<script id="shaderfs_avaruusscene" type="x-shader/x-fragment"> 
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float beat;
+		uniform float alpha;
+
+		uniform float x;
+		uniform float y;
+		uniform float z;
+ 
+		void main(void) {
+	
+	
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+		
+			float myTime = time * 0.0004;
+ 
+			vec2 p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*3.0;
+ 
+			// avaruuseffu
+			p.x = p.x + x;
+			p.y = p.y + y;
+ 
+ 
+			float zoom = cos(myTime*0.1+(cos(p.y*0.3*cos(myTime*0.001)*((cos(myTime*0.008+p.y*0.0001)*0.0006)*p.x))*0.01)*(0.5*p.y*cos(myTime*0.01+p.x*0.001)*0.01)+sin(p.y*0.0001+myTime*0.01)*0.001)*0.0002;
+ 
+ 
+			zoom = zoom + 0.0007;
+ 
+ 
+			float z2 = zoom*z;
+ 
+			if (z2 > 0.6) z2 = 0.6;
+ 
+			float tx = p.y*zoom*0.9;
+			float ty = p.x*zoom*0.8;
+ 
+			float r = cos(myTime*0.1+z+p.y*0.0001)*0.7;
+			float r2 = sin(myTime*0.1+z+p.x*0.0001)*0.6;
+ 
+			vec4 ccc = texture2D(s2d, vec2(tx+r, ty+r2));
+			vec4 ccc2 = texture2D(s2d, vec2(ty+r, tx+r2));
+ 
+			float cal = myTime*0.1+p.x*0.0005+p.y*0.0015;
+ 
+			float ata = atan(myTime);
+ 
+			float vr = cos(cal)*0.5+ata*0.35-z2;
+			float vg = sin(cal)*0.5+ata*0.15-z2;
+			float vb = cos(cal)*0.4+ata*0.2-z2;
+ 
+			gl_FragColor = vec4(ccc.r-ccc2.g+vr, ccc.g-ccc2.b+vb, ccc.b-ccc2.r+vg, 0.2);
+		}
+	</script> 
+ 
+	<script id="shaderfs_curvescene" type="x-shader/x-fragment">
+		precision highp float;
+		precision highp vec3;
+		precision highp mat3;
+		precision highp vec2;
+		precision highp mat2;
+
+		uniform float time;
+		uniform float width;
+		uniform float height;
+
+		void main(void) {
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+			
+			float myTime = time*0.00007;
+
+			vec2 p = (2.0*gl_FragCoord.xy-resolution)/resolution.y;
+	 
+			p.y = p.y + atan(myTime*p.x*13.7*cos(myTime*0.8*p.y))*cos(p.y+myTime)*cos(p.x-myTime);
+			p.x = p.x + cos(myTime+p.y*26.3*sin(myTime*0.87*p.y))*sin(p.x+myTime)*sin(p.y-myTime);
+
+			float col2 = cos(gl_FragCoord.x*(5.5-cos(atan(p.x+gl_FragCoord.y)*0.05+sin(p.y-p.x-myTime)*p.y*0.1+myTime*0.05)*5.55)-myTime*26.0+atan(p.y*10.0+myTime*10.0*(p.x)*p.y))*atan(gl_FragCoord.y*4.5+myTime*0.5);
+
+			float col3 = col2+p.x*0.01;
+			float col4 = col2+p.y*0.01;
+
+			if (col2 > abs(cos(myTime*10.0+cos(gl_FragCoord.y+myTime-p.x*0.03)))) col2 = 1.0;
+			else col2 = 0.0;
+			if (col3 > abs(sin(myTime*10.0+sin(gl_FragCoord.x+myTime-p.x*0.01)))) col3 = 1.0;
+			else col3 = 0.0;
+			if (col4 > abs(tan(myTime*10.0+tan(gl_FragCoord.y+myTime-p.y*0.02)))) col4 = 1.0;
+			else col4 = 0.0;
+
+			float r = cos(p.x+myTime)*col2*col2;
+			float g = sin(p.y+myTime)*col2*col3;
+			float b = atan(p.x+myTime)*col2*col4;
+			if (g < 0.0) g = 0.0;
+			if (b < 0.0) b = 0.0;
+
+			gl_FragColor = vec4((atan(myTime+p.x)*r-b*col2*p.x)*0.3,(g-r*col3*p.y)*0.2,(b-g*col4*p.x*atan(myTime))*0.5,1.0);
+		}
+	</script> 
+ 
+ 
+	<script id="shaderfs_blurspacescene" type="x-shader/x-fragment"> 
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float alpha;
+ 	
+		void main(void) {
+ 
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+ 
+			vec2 p;
+ 
+			float myTime = time * 0.0002;
+ 
+			p = -resolution.xy + 3.0 * gl_FragCoord.xy / resolution.xy * resolution.xy;
+			p.x = p.x + myTime*cos(myTime*0.2)*200.0;
+			p.y = p.y + myTime*sin(myTime*0.3)*300.0;
+ 
+ 
+			float z = cos(myTime*0.6+(cos(p.y*cos(myTime*0.001)*(0.006*p.x))*0.01)*(0.5*p.y*cos(myTime*0.01+p.x*0.001)*0.01)+sin(p.y*0.0001)*0.001)*0.0002;
+			z = z + 0.0005;
+ 
+			float tx = p.x*z+myTime*0.01;
+			float ty = p.y*z+myTime*0.01;
+ 
+			float r = cos(myTime*0.06)*1.0;
+			float r2 = sin(myTime*0.06)*1.0;
+ 
+			vec4 ccc = texture2D(s2d, vec2(tx+r, ty+r2));
+			vec4 ccc2 = texture2D(s2d, vec2(ty+r, tx+r2));
+ 
+			float vr = cos(myTime*0.001+p.x*0.0012+p.y*0.0015)*0.1;
+			float vg = sin(myTime*0.001+p.y*0.0014+p.x*0.0013)*0.15;
+			float vb = atan(myTime*0.001+p.x*0.0013+p.y*0.0014)*0.13;
+ 
+			gl_FragColor = vec4(ccc.r-ccc2.g+vr, ccc.g-ccc2.b+vb, ccc.b-ccc2.r+vg,alpha);
+		}
+			
+	</script> 
+ 
+	<script id="shaderfs_analogscene" type="x-shader/x-fragment"> 
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float beat;
+		uniform float width;
+		uniform float height;
+ 	
+		float an (float x) { return cos(x)*sin(x*2.0)-atan(x*2.5);}
+ 
+		void main(void) {
+ 
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+ 
+			float myTime = time * 0.0001;
+			float myBeat = beat*0.02;
+				
+			vec2 p = (1.0*gl_FragCoord.xy-resolution)/resolution.y;
+ 
+			p.x = p.x+cos(myTime*0.6)*resolution.x/200.0;
+			p.y = p.y+sin(myTime*0.4)*resolution.y/200.0;
+ 
+			float r = cos(1.0-myBeat*0.8)*atan((p.y+1.0*myBeat)*(2500.0+myTime+(cos(myBeat*p.x*2.6)*(myBeat*0.1)))*10.0);
+			float g = sin(1.0-myBeat*0.9)*atan((p.x+2.0*myBeat)*(2500.0+myTime+(sin(myBeat*p.x*3.5)*(myBeat*0.2)))*9.0);
+			float b = sin(1.0-myBeat*1.0)*atan((p.y+3.0*myBeat)*(2500.0+myTime+(cos(myBeat*p.y*4.4)*(myBeat*0.3)))*8.0);
+ 
+			float of = an(tan(p.y*myTime+myBeat)+cos(p.x*myTime-myBeat*r)*cos(myBeat*tan(g*p.x*cos(myBeat*1.0+myTime*10.0)*b*p.y)) * cos(r+myBeat*atan(p.y*myTime*3.0)+p.x*myTime*4.0));
+ 
+			float of2 = an((p.x*cos(p.x+p.y*myTime*0.8)*tan(p.x*myTime)*p.y) * (sin(p.x*myTime*0.8*cos(p.y*myTime*p.x)*myBeat)*sin(p.y*cos(p.x*myTime*myBeat)*p.y*myBeat))*(2.0*myBeat)*p.y);
+ 
+			gl_FragColor = vec4(
+					(r*of*of2)*of2,
+					(g*of*of2)+of2,
+					(b*of*of2)-of2,
+					1.0);
+		}
+	</script> 
+	<script id="shaderfs_letterscene" type="x-shader/x-fragment"> 
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+ 		
+		uniform float time;
+		uniform float width;
+		uniform float height;
+		uniform sampler2D s2d;
+		uniform float alpha;
+		uniform float beat;
+ 	
+		void main(void) {
+ 
+			vec2 resolution;
+			resolution.x = width;
+			resolution.y = height;
+ 
+			vec2 p;
+ 
+			float myTime = time * 0.0002;
+ 
+			p = (gl_FragCoord.xy / resolution.xy) * resolution.xy*10.0;
+ 
+			float x = cos(p.y*0.04+p.x)*0.01+myTime*0.09+(p.x*0.0006);
+			float y = myTime*0.09+(0.1-gl_FragCoord.y*0.0006*2.03)*cos(myTime+p.y*(cos(myTime*0.4)*0.0025))*1.0; 
+ 
+			vec4 c = vec4(0.0);
+ 
+			float b = 0.0005-cos(myTime)*(sin(myTime*0.5)*0.002)-beat*0.0008;
+ 
+			c = c + texture2D(s2d, vec2(x,y));
+			c = c + texture2D(s2d, vec2(x+2.0*b,y+2.0*b));
+			c = c + texture2D(s2d, vec2(x+4.0*b,y+4.0*b));
+			c = c + texture2D(s2d, vec2(x+6.0*b,y+6.0*b));
+			c = c + texture2D(s2d, vec2(x+8.0*b,y+8.0*b));
+			c = c + texture2D(s2d, vec2(x-2.0*b,y-2.0*b));
+			c = c + texture2D(s2d, vec2(x-4.0*b,y-4.0*b));
+			c = c + texture2D(s2d, vec2(x-6.0*b,y-6.0*b));
+			c = c + texture2D(s2d, vec2(x+8.0*b,y-8.0*b));
+ 
+			float e = cos(p.x*0.0001+myTime)*sin(p.y*0.0001+myTime);
+			float f = cos(p.x*0.001+myTime*7.95)*sin(p.y*0.0015+myTime*3.95);
+ 
+			gl_FragColor = vec4(c.r+cos(p.y*0.004)*1.0,c.b*e,c.g*f,(abs(cos(p.y*0.0004+p.x*0.0005+myTime*1.5)*0.01))*c.a);
+		}
+			
+	</script> 
+ 
+<!-- vertex shaders below --!> 
+ 	
+	<script id="shadervs_fsquad" type="x-shader/x-vertex"> 
+		attribute vec3 vertexPosition;
+		uniform mat4 modelViewMatrix;
+		uniform mat4 perspectiveMatrix;
+		varying vec2 pixpos;
+ 		
+		void main(void) {
+			gl_Position = perspectiveMatrix * modelViewMatrix * vec4(vertexPosition, 1.0);
+			pixpos = (vertexPosition.xy + vec2(0.0, 0.0)) / vec2(2.0, 2.0);		
+		}
+	</script> 
+ 	
+	<script type="text/javascript"> 
+		var gl;
+		var vertexBuffer;
+		var rttFramebuffer;
+		var rttTexture;
+ 
+		function initGL(canvas) {
+			try {
+				gl = canvas.getContext("experimental-webgl");
+				gl.viewportWidth = canvas.width;
+				gl.viewportHeight = canvas.height;
+ 
+				var vertices = new Float32Array([ -1., -1.,   1., -1.,    -1.,  1.,     1., -1.,    1.,  1.,    -1.,  1.]);
+ 
+				vertexBuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+ 
+			} catch(e) { }
+			if (!gl) {
+				alert("Bilotrip DarumaGL systems failure. Init failed.");
+			}
+		}
+
+		function initFramebuffer() {
+			rttFramebuffer = gl.createFramebuffer();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+			rttFramebuffer.width = 512;
+			rttFramebuffer.height = 512;
+
+			rttTexture = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+			gl.generateMipmap(gl.TEXTURE_2D);
+
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, rttFramebuffer.width, rttFramebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+			var renderbuffer = gl.createRenderbuffer();
+			gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, rttFramebuffer.width, rttFramebuffer.height);
+
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+			if (!gl.isFramebuffer(rttFramebuffer)) {
+			    alert("Invalid framebuffer");
+			}
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+			var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+			switch (status) {
+				case gl.FRAMEBUFFER_COMPLETE:
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+				    break;
+				case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+				    break;
+				case gl.FRAMEBUFFER_UNSUPPORTED:
+				    alert("Incomplete framebuffer: FRAMEBUFFER_UNSUPPORTED");
+				    break;
+				default:
+				    alert("Incomplete framebuffer: " + status);
+			}
+
+		}
+
+ 	
+	  	function getShader(gl, id) {
+
+	    	var shaderScript = document.getElementById(id);
+	    	if (!shaderScript) {
+	      		return null;
+	    	}
+ 		
+	    	var str = "";
+	    	var k = shaderScript.firstChild;
+	    	while (k) {
+	      		if (k.nodeType == 3) {
+	        		str += k.textContent;
+	      		}
+	      		k = k.nextSibling;
+	    	}
+ 
+	    	var shader;
+	    	if (shaderScript.type == "x-shader/x-fragment") {
+	      		shader = gl.createShader(gl.FRAGMENT_SHADER);
+	    	} else if (shaderScript.type == "x-shader/x-vertex") {
+	      		shader = gl.createShader(gl.VERTEX_SHADER);
+	    	} else {
+	      		return null;
+	    	}
+ 		
+	    	gl.shaderSource(shader, str);
+	    	gl.compileShader(shader);
+ 
+	    	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+	      		alert(gl.getShaderInfoLog(shader));
+	      		return null;
+	    	}
+ 		
+	    	return shader;
+	  	}
+
+ 		function getObjectName(obj) {
+			var tmp = obj.toString();
+			return tmp.substring(tmp.indexOf(' ')+1,tmp.indexOf('('));
+		}
+
+	  	var shaderProgram_fsscene;
+	  	var shaderProgram_blurdeformscene;
+	  	var shaderProgram_convo;
+	  	var shaderProgram_avaruusscene;
+	  	var shaderProgram_blurspacescene;
+	  	var shaderProgram_analogscene;
+	  	var shaderProgram_psykescene;
+	  	var shaderProgram_letterscene;
+	  	var shaderProgram_fractalscene;
+		var shaderProgram_mankeliscene;
+	  	var shaderProgram_curvescene;
+
+		function getVertices(z) {
+			return new Float32Array([
+				0.0, 2.15-z, 4.0,
+				-3.0, 2.15-z, 4.0,
+				-3.0, -3.0+z, 4.0,
+
+				-3.0, -3.0+z, 4.0,
+				3.0, -3.0+z, 4.0,
+				0.0, 2.15-z, 4.0,
+
+				0.0, 2.15-z, 4.0,
+				3.0, 2.15-z, 4.0,
+				3.0, -3.0+z, 4.0
+			]);
+		}
+ 
+		function linkshader(shaderProgram, fragmentShader, vertexShader, type) {
+			gl.attachShader(shaderProgram, fragmentShader);
+			gl.attachShader(shaderProgram, vertexShader);
+ 
+			gl.linkProgram(shaderProgram);
+			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+				alert("Bilotrip DarumaGL fail: Could not initialise shader program");
+				alert(gl.getProgramInfoLog(shaderProgram));
+			} else {
+				gl.useProgram(shaderProgram);
+
+				var vertexPosition = gl.getAttribLocation(shaderProgram, "vertexPosition");
+			
+				gl.enableVertexAttribArray(vertexPosition);
+				gl.bufferData(gl.ARRAY_BUFFER, getVertices(0.0), gl.STATIC_DRAW);
+
+				if (type == 0) { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
+				else { scw = gl.viewportWidth; gl.viewportHeight; }
+			
+				var fieldOfView = 20.0;
+				var aspectRatio = scw / sch;
+				var nearPlane = 1.0;
+				var farPlane = 10000.0;
+				var top = nearPlane * Math.tan(fieldOfView * Math.PI / 360.0);
+				var bottom = -top;
+				var right = top * aspectRatio;
+				var left = -right;
+	 
+				var a = (right + left) / (right - left);
+				var b = (top + bottom) / (top - bottom);
+				var c = (farPlane + nearPlane) / (farPlane - nearPlane);
+				var d = (2 * farPlane * nearPlane) / (farPlane - nearPlane);
+				var x = (2 * nearPlane) / (right - left);
+				var y = (2 * nearPlane) / (top - bottom);
+				var perspectiveMatrix = [
+					x, 0, a, 0,
+					0, y, b, 0,
+					0, 0, c, d,
+					0, 0, -1, 0
+				];
+	 
+				var modelViewMatrix = [
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1
+				];
+	 
+				var vertexPosAttribLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
+				gl.vertexAttribPointer(vertexPosAttribLocation, 3.0, gl.FLOAT, false, 0, 0);
+	 
+				var uModelViewMatrix = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
+				var uPerspectiveMatrix = gl.getUniformLocation(shaderProgram, "perspectiveMatrix");
+	 
+				gl.uniformMatrix4fv(uModelViewMatrix, false, new Float32Array(perspectiveMatrix));
+				gl.uniformMatrix4fv(uPerspectiveMatrix, false, new Float32Array(modelViewMatrix));
+ 	
+				shaderProgram.widthUniform = gl.getUniformLocation(shaderProgram, "width");
+				shaderProgram.heightUniform = gl.getUniformLocation(shaderProgram, "height");
+				shaderProgram.timeUniform = gl.getUniformLocation(shaderProgram, "time");
+				shaderProgram.beatUniform = gl.getUniformLocation(shaderProgram, "beat"); 
+				shaderProgram.beatrunnerUniform = gl.getUniformLocation(shaderProgram, "beat_runner"); 
+				shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
+
+				shaderProgram.xUniform = gl.getUniformLocation(shaderProgram, "x");
+				shaderProgram.yUniform = gl.getUniformLocation(shaderProgram, "y");
+				shaderProgram.zUniform = gl.getUniformLocation(shaderProgram, "z");
+				shaderProgram.layer_alphaUniform = gl.getUniformLocation(shaderProgram, "layer_alpha");
+ 
+			}
+		}
+ 
+	  	function initShaders() {
+			var fragmentShader_fsscene = getShader(gl, "shaderfs_fsscene");
+			var fragmentShader_blurdeformscene = getShader(gl, "shaderfs_blurdeformscene");
+			var fragmentShader_convo = getShader(gl, "shaderfs_convo");
+			var fragmentShader_avaruusscene = getShader(gl, "shaderfs_avaruusscene");
+			var fragmentShader_blurspacescene = getShader(gl, "shaderfs_blurspacescene");
+			var fragmentShader_analogscene = getShader(gl, "shaderfs_analogscene");
+			var fragmentShader_psykescene = getShader(gl, "shaderfs_psykescene");
+			var fragmentShader_letterscene = getShader(gl, "shaderfs_letterscene");
+			var fragmentShader_fractalscene = getShader(gl, "shaderfs_fractalscene");
+			var fragmentShader_mankeliscene = getShader(gl, "shaderfs_mankeliscene");
+			var fragmentShader_curvescene = getShader(gl, "shaderfs_curvescene");
+ 
+			var vertexShader_fsquad = getShader(gl, "shadervs_fsquad");
+ 
+			shaderProgram_fsscene = gl.createProgram();
+			shaderProgram_blurdeformscene = gl.createProgram();
+			shaderProgram_convo = gl.createProgram();
+			shaderProgram_avaruusscene = gl.createProgram();
+			shaderProgram_blurspacescene = gl.createProgram();
+			shaderProgram_analogscene = gl.createProgram();
+			shaderProgram_psykescene = gl.createProgram();
+			shaderProgram_letterscene = gl.createProgram();
+			shaderProgram_fractalscene = gl.createProgram();
+			shaderProgram_mankeliscene = gl.createProgram();
+			shaderProgram_curvescene = gl.createProgram();
+
+			linkshader(shaderProgram_curvescene, fragmentShader_curvescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_fsscene, fragmentShader_fsscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_blurdeformscene, fragmentShader_blurdeformscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_convo, fragmentShader_convo, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_avaruusscene, fragmentShader_avaruusscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_blurspacescene, fragmentShader_blurspacescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_analogscene, fragmentShader_analogscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_psykescene, fragmentShader_psykescene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_letterscene, fragmentShader_letterscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_fractalscene, fragmentShader_fractalscene, vertexShader_fsquad, 0);	
+			linkshader(shaderProgram_mankeliscene, fragmentShader_mankeliscene, vertexShader_fsquad, 0);	
+	  	}
+ 
+		var spaceTexture;
+		var letterTexture;
+		var bilogoTexture;
+		var eyeTexture;
+		var catTexture;
+ 
+		function initTextures() {
+			spaceTexture = gl.createTexture();
+			spaceTexture.image = new Image();
+		    	spaceTexture.image.onload = function() {
+		    		handleLoadedTexture_space(spaceTexture)
+		    	}
+ 
+		    	spaceTexture.image.src = "spacetexture.jpg";
+ 
+ 
+			letterTexture = gl.createTexture();
+			letterTexture.image = new Image();
+		    	letterTexture.image.onload = function() {
+		    		handleLoadedTexture_letter(letterTexture)
+		    	}
+ 
+		    	letterTexture.image.src = "letters.png";
+
+			bilogoTexture = gl.createTexture();
+			bilogoTexture.image = new Image();
+			bilogoTexture.image.onload = function() {
+				handleLoadedTexture_bilogo(bilogoTexture)
+			} 
+
+		    	bilogoTexture.image.src = "bilogo.png";
+
+			eyeTexture = gl.createTexture();
+			eyeTexture.image = new Image();
+			eyeTexture.image.onload = function() {
+				handleLoadedTexture_eye(eyeTexture)
+			} 
+
+		    	eyeTexture.image.src = "eye.png"
+
+			catTexture = gl.createTexture();
+			catTexture.image = new Image();
+			catTexture.image.onload = function() {
+				handleLoadedTexture_cat(catTexture)
+			} 
+
+		    	catTexture.image.src = "cat.png"
+		}
+ 
+		  function handleLoadedTexture_space(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		    gl.generateMipmap(gl.TEXTURE_2D);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+ 
+		  function handleLoadedTexture_letter(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		    gl.generateMipmap(gl.TEXTURE_2D);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+
+		  function handleLoadedTexture_bilogo(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+
+		  function handleLoadedTexture_eye(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		    gl.generateMipmap(gl.TEXTURE_2D);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+
+		  function handleLoadedTexture_cat(texture) {
+		    gl.bindTexture(gl.TEXTURE_2D, texture);
+		    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		    gl.bindTexture(gl.TEXTURE_2D, null);
+		  }
+ 	
+		function initModels() {
+		    var request = new XMLHttpRequest();
+		    request.open("GET", "temple.json");
+		    request.onreadystatechange = function() {
+		      if (request.readyState == 4) {
+			handleLoadedTemple(JSON.parse(request.responseText));
+		      }
+		    }
+		    request.send();
+		}
+ 
+		var templeVertexPositionBuffer;
+		var templeVertexNormalBuffer;
+		var templeVertexTextureCoordBuffer;
+		var templeVertexIndexBuffer;
+	
+		function handleLoadedTemple(templeData) {
+		    templeVertexNormalBuffer = gl.createBuffer();
+		    gl.bindBuffer(gl.ARRAY_BUFFER, templeVertexNormalBuffer);
+		    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(templeData.vertexNormals), gl.STATIC_DRAW);
+		    templeVertexNormalBuffer.itemSize = 3;
+		    templeVertexNormalBuffer.numItems = templeData.vertexNormals.length / 3;
+ 
+		    templeVertexTextureCoordBuffer = gl.createBuffer();
+		    gl.bindBuffer(gl.ARRAY_BUFFER, templeVertexTextureCoordBuffer);
+		    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(templeData.vertexTextureCoords), gl.STATIC_DRAW);
+		    templeVertexTextureCoordBuffer.itemSize = 2;
+		    templeVertexTextureCoordBuffer.numItems = templeData.vertexTextureCoords.length / 2;
+ 
+		    templeVertexPositionBuffer = gl.createBuffer();
+		    gl.bindBuffer(gl.ARRAY_BUFFER, templeVertexPositionBuffer);
+		    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(templeData.vertexPositions), gl.STATIC_DRAW);
+		    templeVertexPositionBuffer.itemSize = 3;
+		    templeVertexPositionBuffer.numItems = templeData.vertexPositions.length / 3;
+ 
+		    templeVertexIndexBuffer = gl.createBuffer();
+		    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, templeVertexIndexBuffer);
+		    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(templeData.indices), gl.STATIC_DRAW);
+		    templeVertexIndexBuffer.itemSize = 1;
+		    templeVertexIndexBuffer.numItems = templeData.indices.length;
+		}
+ 
+ 
+		var date;
+ 
+		var demo_start_time = 0;
+		var part_start_time = 0;
+
+		var timefromlast = 0;
+
+	  	var time = 0;
+		var low = 0; 
+		var beat = 0;
+		var demo_beattime = 618.55670; // 97bpm
+		var beat_runner = 0;
+ 
+		var fadecounter = 0;
+		var feedbackval = 0.0;
+		var feedbackalpha = 1.0;
+			
+		var part_counter = 0;
+		var tl = [];
+		var feedback = [];
+		var convolution = [];
+
+		requestAnimFrame = (function() {
+		  return window.requestAnimationFrame ||
+		     window.webkitRequestAnimationFrame ||
+		     window.mozRequestAnimationFrame ||
+		     window.oRequestAnimationFrame ||
+		     window.msRequestAnimationFrame ||
+		     function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+		       window.setTimeout(callback, 1000/60);
+		     };
+		})();
+
+		function visystyle_scene(layer, shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff) {
+ 
+			if (!alpha) alpha = 1.0;
+
+			if (!xoff) xoff = 0.0;
+
+			if (w) { scw = w; sch = h; }
+			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
+
+			gl.useProgram(shaderProgram);
+ 
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
+			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 0);
+ 
+			gl.uniform1f(shaderProgram.widthUniform, scw);
+			gl.uniform1f(shaderProgram.heightUniform, sch);	
+ 
+			gl.uniform1f(shaderProgram.timeUniform, time);
+
+			gl.uniform1f(shaderProgram.beatUniform, beat);
+			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
+
+		// timeline values
+			if (tl[part_counter][layer]) {
+				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			}
+		///////////////////////
+ 
+			gl.uniform1f(shaderProgram.alphaUniform, alpha);
+ 
+			gl.drawArrays(gl.TRIANGLES, 0, 9);
+
+	  	}
+		
+		function fs_scene(layer, shaderProgram, currentTexture, z, alpha, timeoverride, w,h,xoff, kernel) {
+ 
+			if (!alpha) alpha = 1.0;
+
+			if (!xoff) xoff = 0.0;
+
+			if (w) { scw = w; sch = h; }
+			else { scw = rttFramebuffer.width; sch = rttFramebuffer.height; }
+
+			gl.useProgram(shaderProgram);
+
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, currentTexture);
+			gl.uniform1i(gl.getUniformLocation(shaderProgram, "s2d"), 0);
+ 
+			gl.uniform1f(shaderProgram.widthUniform, scw);
+			gl.uniform1f(shaderProgram.heightUniform, sch);	
+ 
+			gl.uniform1f(shaderProgram.timeUniform, time);
+
+			gl.uniform1f(shaderProgram.beatUniform, beat);
+			gl.uniform1f(shaderProgram.beatrunnerUniform, beat_runner);
+
+			gl.uniform1f(shaderProgram.alphaUniform, alpha);
+
+			if (kernel) {
+				var j;
+				var loc = Array(9);
+				for (j=0;j<9;j++) { 
+					loc[j] = gl.getUniformLocation(shaderProgram, "kernel"+(j+1));
+					gl.uniform1f(loc[j], kernel[j]); 
+				}
+				shaderProgram.convoUniform = gl.getUniformLocation(shaderProgram, "effect");
+				gl.uniform1f(shaderProgram.convoUniform,convolution.effect);
+			}
+
+		// timeline values
+			if (tl[part_counter][layer]) {
+				if (tl[part_counter][layer].x) gl.uniform1f(shaderProgram.xUniform,tl[part_counter][layer].x);
+				if (tl[part_counter][layer].y) gl.uniform1f(shaderProgram.yUniform,tl[part_counter][layer].y);
+				if (tl[part_counter][layer].z) gl.uniform1f(shaderProgram.zUniform,tl[part_counter][layer].z);
+				if (tl[part_counter][layer].layer_alpha) gl.uniform1f(shaderProgram.layer_alphaUniform,tl[part_counter][layer].layer_alpha);
+			}
+ 
+			gl.drawArrays(gl.TRIANGLES, 0, 9);
+
+	  	}
+ 
+		function endDemo() {
+ 
+			// do something here, like stop the music
+		}
+ 
+		var effects = [];
+ 
+		var sharpkernel; 
+
+		function initEffects() {
+
+			tl = new Array(10);
+
+			var i;
+			for(i=0;i<tl.length;i++) tl[i] = new Array(10);
+
+
+			// add params to each scene and layer here
+
+			// [scenenum][layernum]
+
+			tl[0][0] = {x: 0, y: 0, z: 0};
+			tl[0][1] = {x: 0, y: 0, z: 0};
+			tl[0][2] = {x: 0, y: 0, z: 0, layer_alpha: 0};
+
+			tl[1][0] = {x: 0, y: 0, z: 0};
+			tl[1][1] = {x: 0, y: 0, z: 0};
+			tl[1][2] = {x: 0, y: 0, z: 0};
+
+			tl[2][0] = {x: 0, y: 0, z: 0};
+			tl[2][1] = {x: 0, y: 0, z: 0};
+			tl[2][2] = {x: 0, y: 0, z: 0};
+
+			tl[3][1] = {z:0};
+			tl[4][1] = {z:0};
+
+			// timeline anim objects
+
+			var scene1_space = new Object;
+			var scene1_psyke = new Object;
+			var scene1_bilogo = new Object;
+			var scene2_fractal = new Object;
+			var scene3_marcher = new Object;
+			var scene4_eye = new Object;
+
+			scene1_space = tl[0][0];
+			scene1_psyke = tl[0][1];
+			scene1_bilogo = tl[0][2];
+			scene2_fractal = tl[1][1];
+			scene3_marcher = tl[2][0];
+			scene4_eye = tl[3][1];
+			scene5_cat = tl[4][1];
+
+			feedback.push({amount:0, alpha:0});
+			convolution.push({effect:0});
+
+			// cut and paste export to here 
+			anim("scene1_space",scene1_space).to({"x":100},0).to({"x":1000},11);
+			anim("scene1_space",scene1_space).to({"y":10},0).to({"y":1000},43.5);
+			anim("scene1_space",scene1_space).to({"z":1},0).to({"z":1},40.5, Timeline.Easing.Cubic.EaseOut);
+			anim("scene1_psyke",scene1_psyke).to({"x":10},0).to({"x":10000},59);
+			anim("scene1_psyke",scene1_psyke).to({"y":0},0).to({"y":1000},73, Timeline.Easing.Cubic.EaseOut);
+			anim("scene1_psyke",scene1_psyke).to({"z":10},0).to({"z":0},41.5);
+			anim("scene1_bilogo",scene1_bilogo).to({"layer_alpha":0},0).to({"layer_alpha":0.7},11).to({"layer_alpha":0.7},26.5).to({"layer_alpha":0.98},2.5);
+			anim("scene2_fractal",scene2_fractal).to({"x":0},0).to({"x":0},34).to({"x":-1},25, Timeline.Easing.Cubic.EaseOut).to({"x":0.3091604828735536},2.524563170694975).to({"x":-0.1},2.533846153846156, Timeline.Easing.Cubic.EaseOut).to({"x":-0.8},14.538461538461533).to({"x":0.1},1.8276923076923168, Timeline.Easing.Quadratic.EaseIn).to({"x":0.5},7.6033211654046085).to({"x":0.4},4.859999999999985).to({"x":0.4},8.099999999999994).to({"x":2.5},17.82000000000002, Timeline.Easing.Quadratic.EaseIn);
+			anim("scene2_fractal",scene2_fractal).to({"y":10},0).to({"y":10},36.5).to({"y":10},23.979999999999997).to({"y":1},4.159947786079606, Timeline.Easing.Cubic.EaseOut).to({"y":0.4},8.598461538461521).to({"y":0},3.73846153846155).to({"y":0},11.043129136997337, Timeline.Easing.Elastic.EaseInOut).to({"y":0},7.243884336099569, Timeline.Easing.Elastic.EaseInOut).to({"y":0},3.240000000000009, Timeline.Easing.Elastic.EaseInOut);
+			anim("scene2_fractal",scene2_fractal).to({"z":10},0).to({"z":10},38).to({"z":10},5).to({"z":9},16.5).to({"z":9},0.697276371715617).to({"z":15},18.648825260517825).to({"z":0.007420094043132498},2.6169230769230722, Timeline.Easing.Cubic.EaseOut).to({"z":0.9062022177296598},0.19285962694306136, Timeline.Easing.Back.EaseIn).to({"z":50},16.956000000000017, Timeline.Easing.Back.EaseOut).to({"z":10},15.012).to({"z":10},88.8761156639004);
+			anim("scene3_marcher",scene3_marcher).to(121.5,{"x":0},0).to({"x":0},0).to({"x":0},0).to({"x":0},62.5);
+			anim("scene3_marcher",scene3_marcher).to(121.5,{"y":0},0).to({"y":0},0).to({"y":0},0).to({"y":0},61.5);
+			anim("scene3_marcher",scene3_marcher).to(-1.5,{"z":1},0).to({"z":1},122.5).to({"z":1},38);
+			anim("scene4_eye",scene4_eye).to(158.40163263881547,{"z":0},0).to({"z":0},0).to({"z":2},0).to({"z":-0.997},22.119427612819692).to({"z":-0.997},9.978939748364837, Timeline.Easing.Quadratic.EaseIn).to({"z":-3},10.514999999999986).to({"z":0},1.0934046559812316, Timeline.Easing.Cubic.EaseOut).to({"z":-3},71.9415953440188);
+			anim("scene5_cat",scene5_cat).to(196.3304046559812,{"z":0},0).to({"z":0},0).to({"z":0},0).to({"z":0},0).to({"z":0},5.669595344018802).to({"z":0.3},5.684351647934392).to({"z":1},4.315648352065608).to({"z":1.01},11.632265909781324).to({"z":1.02},11.367734090218676).to({"z":1},53);
+			anim("feedback",feedback).to({"amount":0.8},0).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":0.8},0, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},12.504600044438327, Timeline.Easing.Quadratic.EaseIn).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},9.635399955561677, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":1},0, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},7.374600044438324, Timeline.Easing.Cubic.EaseInOut).to({"amount":0.86133620680685},0).to({"amount":0.86133620680685},0).to({"amount":0.5},9.81539995556167).to({"amount":0.5},0).to({"amount":0.5},0).to({"amount":0.9},0.720000000000006).to({"amount":0.9},0).to({"amount":0.9},0).to({"amount":1},25.449999999999996).to({"amount":0.9797005351473923},34.94, Timeline.Easing.Quadratic.EaseIn).to({"amount":0},18.360000000000014, Timeline.Easing.Quadratic.EaseIn).to({"amount":2},21.682463614823575, Timeline.Easing.Cubic.EaseOut).to({"amount":3},0.49736842105264145, Timeline.Easing.Cubic.EaseIn).to({"amount":4},0.6252631578947501, Timeline.Easing.Cubic.EaseIn).to({"amount":5},0.6110526315789286, Timeline.Easing.Cubic.EaseIn).to({"amount":6},0.4916749165053318, Timeline.Easing.Cubic.EaseIn).to({"amount":6},2.6999999999999886, Timeline.Easing.Cubic.EaseIn).to({"amount":2},4.860000000000014, Timeline.Easing.Cubic.EaseIn).to({"amount":1},10.664999999999992, Timeline.Easing.Cubic.EaseIn).to({"amount":0.98},17.887500000000017);
+			anim("feedback",feedback).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0},0).to({"alpha":0.9},12.5).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},10.13460004443833, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":0.9267500531829455},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},7.3877715540263935, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},10.259999999999998, Timeline.Easing.Cubic.EaseInOut).to({"alpha":1},0).to({"alpha":1},0).to({"alpha":0},79.71762840153528).to({"alpha":0.660790273556231},22.74000000000001).to({"alpha":0.2},9.539999999999992).to({"alpha":0.3},10.800000000000011);
+			anim("convolution",convolution).to({"effect":1},0).to({"effect":1},12.690000000000001).to({"effect":1},3.780000000000001).to({"effect":1},28.350000000000005).to({"effect":0},75.17999999999999).to({"effect":10},49);
+			anim("dummy",dummy).to({"dummy":0},0).to({"dummy":0},0);
+
+			// export end
+
+			var dummy = [];
+
+			anim("dummy",dummy).to({"dummy":0},0).to({"dummy":0},0);
+
+			// SCENES
+
+			// avaruusscene
+			// efektin rendaamisen funktiokutsu
+			effects.push(" 								\
+				gl.enable(gl.BLEND); 						\
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR);					\
+				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_COLOR);					\
+				visystyle_scene(2,shaderProgram_fsscene, bilogoTexture,0.01, 1.00);     \
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
+			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);					\
+				visystyle_scene(1,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
+			");
+
+			// starttime
+			effects.push(0);
+			// endtime
+			effects.push(39600);
+ 
+			// scene 2
+			
+			// efektin rendaamisen funktiokutsu
+			effects.push(" 									\
+				gl.enable(gl.BLEND); 							\
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);					\
+				visystyle_scene(1,shaderProgram_fractalscene, spaceTexture,0.01, 0.5); 	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+													\
+			");
+
+			effects.push(39600);
+			effects.push(120500);
+
+			// scene 3
+
+			effects.push(" 								\
+				gl.enable(gl.BLEND); \
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
+				visystyle_scene(0,shaderProgram_blurspacescene, spaceTexture,0.01); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(1,shaderProgram_mankeliscene, rttTexture, 0.01); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(2,shaderProgram_letterscene, letterTexture,0.01);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);				\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.ONE_MINUS_SRC_COLOR, gl.ONE_MINUS_DST_ALPHA);			\
+				visystyle_scene(2,shaderProgram_psykescene, spaceTexture,0.01, 1.00, timefromstart);	\
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(1,shaderProgram_mankeliscene, rttTexture, 0.01); \
+			");
+
+			effects.push(120500);
+			effects.push(160800);
+
+			// scene 4
+
+			effects.push(" 								\
+				gl.enable(gl.BLEND); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);					\
+				visystyle_scene(1,shaderProgram_fsscene, eyeTexture, 0.01, 0.3); \
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_COLOR);					\
+				visystyle_scene(0,shaderProgram_curvescene, spaceTexture, 0.01); \
+			");
+
+			effects.push(160800);
+			effects.push(202800);
+
+			// scene 5
+
+			effects.push(" 								\
+				gl.enable(gl.BLEND); \
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);					\
+				visystyle_scene(0,shaderProgram_avaruusscene, spaceTexture,0.01); \
+			gl.blendFunc(gl.SRC_COLOR, gl.DST_ALPHA);					\
+				visystyle_scene(1,shaderProgram_fsscene, catTexture, 0.01, Math.cos(time*0.03)); \
+			");
+
+			effects.push(202800);
+			effects.push(10000000);
+		
+			sharpkernel = new Array(0, -1, 0,   -1, 5, -1,   0, -1, 0);
+
+			Timeline.getGlobalInstance().loop(-1);
+		}
+ 
+		var effect_pointer = 0;
+		var hitting = 0;
+		var timedelta = 0;
+		var seektime = -1;
+
+		function demo_seekto(msec) {
+			
+			var i = 0;
+			var thispart = 0;
+			while (i<effects.length) {
+				if (msec >= effects[i+1] && msec < effects[i+2]) {
+					part_counter = thispart;
+					effect_pointer = part_counter*3;
+					part_start_time = effects[i+1];
+					seektime = msec;
+					ptimer = msec;
+					beat_runner = 0;
+					break;
+				}
+				i+=3;
+				thispart++; 
+			}
+		}
+
+	  	function drawScene() {
+			if (audio_inited == 1) {
+				var ptimer = 0;
+				if (audio_inited == 1) ptimer = audioPos();
+				var frame_start_msec = 0;
+
+				frame_start_msec = ptimer;
+				time = (frame_start_msec - demo_start_time - part_start_time);
+				if (seektime > 0) { time = seektime; seektime = -1; }	
+				
+				beat = 0.0;
+				if (beat > 0.2) beat_runner = beat_runner + beat;
+ 
+				var timefromstart = (new Date().getTime() - demo_start_time);
+				
+				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+		
+				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2]) {
+ 
+					eval(effects[effect_pointer]);
+				} else {
+					effect_pointer+=3;
+					part_counter++;
+					part_start_time = ptimer;
+					timefromlast = (new Date().getTime() - part_start_time);
+					beat_runner = 0;
+				}
+
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_DST_ALPHA);
+
+				var mw = rttFramebuffer.width/(feedback.amount);	
+				var mh = rttFramebuffer.height/(feedback.amount);	
+
+				gl.viewport(0, 0,rttFramebuffer.width, rttFramebuffer.height);
+				fs_scene(0,shaderProgram_fsscene, rttTexture,-0.1, feedback.alpha, timefromstart, mw+Math.abs(Math.cos(time*0.0001)*0.1), mh,0.0);
+	
+
+				gl.bindTexture(gl.TEXTURE_2D, null);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+
+				if (!(ptimer >= 120500 && ptimer < 160800))
+				fs_scene(0,shaderProgram_blurdeformscene, rttTexture,0.01, 0.99, timefromstart, gl.viewportWidth, gl.viewportHeight, 0);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR);
+				fs_scene(0,shaderProgram_convo, rttTexture,0.01, 0.8, timefromstart, gl.viewportWidth, gl.viewportHeight, 0, sharpkernel);
+
+				gl.finish();
+
+				ptimer = audioPos();
+		
+				timedelta = (ptimer-frame_start_msec);
+				timefromlast = (ptimer - part_start_time);
+				requestAnimFrame(drawScene);
+
+			} else {
+				// loaderi tähän
+				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+				gl.clearColor(0.0, 0.0, 0.0, 0.0);
+				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
+
+				requestAnimFrame(drawScene);
+			}	
+	  	}
+ 
+ 
+		function BrowserSize() {
+  			if( typeof( window.innerWidth ) == 'number' ) {
+    			//Non-IE
+    			this.width = window.innerWidth;
+    			this.height = window.innerHeight;
+  			} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+    			//IE 6+ in 'standards compliant mode'
+    			this.width = document.documentElement.clientWidth;
+    			this.height = document.documentElement.clientHeight;
+  			} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+    			//IE 4 compatible
+    			this.width = document.body.clientWidth;
+    			this.height = document.body.clientHeight;
+  			}
+			this.noOverflowWidth = this.width - 4;
+			this.noOverflowHeight = this.height - 4;
+		}
+		BrowserSize.prototype.width;
+		BrowserSize.prototype.noOverflowWidth;
+		BrowserSize.prototype.height;
+		BrowserSize.prototype.noOverflowHeight;
+
+		var browserSize = new BrowserSize();
+	  	function webGLStart() {
+			var container = document.getElementById("container");
+			var canvas = document.getElementById("bilocanvas");
+			container.style.width = browserSize.noOverflowWidth + "px";
+			container.style.height = browserSize.noOverflowHeight + "px";
+			canvas.width = container.offsetWidth;
+			canvas.height = container.offsetHeight-1;
+
+			initGL(canvas);
+			initFramebuffer();
+			initShaders();
+			initTextures();
+			initEffects();	
+	
+			demo_start_time = 0;
+			requestAnimFrame(drawScene);
+	  	}
+	</script> 
+	<script type="text/javascript"> 
+		function init() {
+			initAudio();	
+			webGLStart();
+		}
+	</script> 
+	<style type="text/css"> 
+		body {
+			background-color: black;
+			margin: 0px;
+			padding: 0px;
+		}
+		#bilocanvas {
+			background: 0;
+		}
+	</style> 
+	<script type="text/javascript">
+		window.onload = init; 
+	</script> 
+</head> 
+ 
+<body onresize="window.location.reload(true);"> 
+	<div id="container"> 
+		<canvas id="bilocanvas" width="512" height="512"></canvas>
+	</div> 
+</body> 
+</html> 
