@@ -93,7 +93,7 @@
 			vec3 dir = normalize(vec3(pixpos, 1.0));
  
  
-			float a2 = 2.9+cos(myTime)*0.5;
+			float a2 = 2.9+cos(myTime*0.7)*0.5;
 			mat3 r2 = mat3(1);
         		r2[1][1] = cos(a2);
         		r2[2][1] = sin(a2);
@@ -2186,13 +2186,8 @@
 			<img src = "videomoduuli.png" style="position:absolute; padding-top: 5%; width:100%; height:80%"/> 
 		</div> 
 		<canvas id="bilocanvas" width="512" height="512"></canvas> 
-		<div id="text"> 
-			<span class="bilotrip">BILOTRIP</span> 
-			<span class="mkultra">MKULTRA</span> 
-			<span class="credits"><!--CREDITS--></span> 
-		</div> 
-		<p id="subtitle"><span>The <em>legend</em> is always the same.</span></p> 
-		<div id="subtitle-text"><p><span>The <em>legend</em> is always the same.</span></p><p><span>Nine immortal men live on top of the <em>mountain</em>;</span> <span>from the highest peak they <em>direct</em> our world.</span> <span>They hold the secret to the <em>conquest</em> of death.</span> <span>They are more than forty thousand years <em>old</em>.<span></p><p><span>But <em>they</em> were once like ourselves -</span> <span>if others have succeeded conquering <em>death</em>,</span> <span>why must <em>we</em> accept it?</span> <span>I know where <em>the immortals</em> live,</span> <span>and how to obtain their <em>secret</em>.</span></p><br data-goto="#subtitle-text>p:first-child" /></div> 
+		<p id="subtitle"><span>The legend is always the same.</span></p> 
+		<div id="subtitle-text"><p><span>The legend is always the same.</span></p><p><span>Nine immortal men live on top of the mountain;</span> <span>from the highest peak they direct our world.</span> <span>They hold the secret to the conquest of death.</span> <span>They are more than forty thousand years old.</span></p><span></span><p><span>But they were once like ourselves -</span> <span>if others have succeeded conquering death,</span> <span>why must we accept it?</span> <span>I know where the immortals live,</span> <span>and how to obtain their secret.</span></p><br data-goto="#subtitle-text>p:first-child" /></div> 
 	</div> 
 </body> 
 </html> 
