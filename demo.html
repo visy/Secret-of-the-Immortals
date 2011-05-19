@@ -21,10 +21,12 @@
 	}
 
 	function audioReady() {
-		if (audio_inited == 0) initSubtitles();
-		audio_inited = 1;
-		audio.play();
-		finetime_start = new Date().getTime();
+		if (audio_inited == 0) {
+			initSubtitles();
+			audio.play();
+			finetime_start = new Date().getTime();
+			audio_inited = 1;
+		}
 	}
 
 	function audioSeek(msec) {
@@ -39,20 +41,21 @@
 		audio.stop();
 	}
 
+	function audioPlay() {
+	}
+
+
 	function initAudio() {
 		audio = document.createElement('audio');
 		audio.setAttribute('src', 'song.ogg');
-		audio.addEventListener('canplay', audioReady, false);
+		audio.addEventListener('canplaythrough', audioReady, false);
 		audio.addEventListener('seeked', audioSeeked, false);
 		audio.controls = false;
 		audio.load();
 	}
 
-	function audioPlay() {
-	}
-
 	function audioPos() {
-		if (audio_inited == 1) {
+		if (audio_inited > 0) {
 			audio_position = audio.currentTime*1000;
 			return audio_position;
 		} else return 0;
@@ -1834,7 +1837,7 @@
 	  	function drawScene() {
 			if (audio_inited == 1 && textureCount >= numTextures) {
 				var ptimer = 0;
-				if (audio_inited == 1) ptimer = finePos();
+				ptimer = finePos();
 				var frame_start_msec = 0;
 
 				frame_start_msec = ptimer;
