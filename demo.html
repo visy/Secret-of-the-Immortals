@@ -425,24 +425,26 @@
 
 			vec4 tmp = vec4(0.0);
 
+			float val = 0.3;
+
 			tmp = texture2D(s2d, c + offset1);
-			sum += tmp * kernel1;
+			sum += tmp * kernel1*val;
 			tmp = texture2D(s2d, c + offset2);
-			sum += tmp * kernel2;
+			sum += tmp * kernel2*val;
 			tmp = texture2D(s2d, c + offset3);
-			sum += tmp * kernel3;
+			sum += tmp * kernel3*val;
 			tmp = texture2D(s2d, c + offset4);
-			sum += tmp * kernel4;
+			sum += tmp * kernel4*val;
 			tmp = texture2D(s2d, c + offset5);
-			sum += tmp * kernel5;
+			sum += tmp * kernel5*val;
 			tmp = texture2D(s2d, c + offset6);
-			sum += tmp * kernel6;
+			sum += tmp * kernel6*val;
 			tmp = texture2D(s2d, c + offset7);
-			sum += tmp * kernel7;
+			sum += tmp * kernel7*val;
 			tmp = texture2D(s2d, c + offset8);
-			sum += tmp * kernel8;
+			sum += tmp * kernel8*val;
 			tmp = texture2D(s2d, c + offset9);
-			sum += tmp * kernel9;
+			sum += tmp * kernel9*val;
 
 			sum.a = alpha;
 
@@ -1799,7 +1801,7 @@
 			effects.push(287000);
 			effects.push(1000000);
 
-			sharpkernel = new Array(0, -1, 0,   -1, 5, -1,   0, -1, 0);
+			sharpkernel = new Array(-1, -1, 1,   -1, 6, 1,   -1, -1, 1);
 
 			Timeline.getGlobalInstance().loop(-1);
 		}
