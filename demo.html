@@ -1795,10 +1795,10 @@
 			");
 
 			effects.push(202800);
-			effects.push(287000);
+			effects.push(285500);
 		
 			effects.push("endDemo();");
-			effects.push(287000);
+			effects.push(285500);
 			effects.push(1000000);
 
 			sharpkernel = new Array(-1, -1, 1,   -1, 6, 1,   -1, -1, 1);
@@ -2165,8 +2165,10 @@
 
 			if (st >= t_begin && st < t_end && prev_text < sii) {
 				prev_text = sii;
-				$('#subtitle').html(subtitles[sii]);
-				$('#subtitle').show();
+				if (sii != 5) {
+					$('#subtitle').html(subtitles[sii]);
+					$('#subtitle').show();
+				}
 			}
 			if (st >= t_end) {
 				si++;
