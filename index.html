@@ -1,7 +1,7 @@
 <!DOCTYPE html> 
 <html> 
 <head> 
-	<title>Bilotrip WebGL basecode</title> 
+	<title>MKULTRA by Bilotrip</title> 
 
 	<script type="text/javascript">
 
@@ -13,7 +13,7 @@
 	var finetime_start = 0;
 
 	function finePos() {
-		return finetime;
+		return (new Date().getTime()-finetime_start);
 	}
 
 	function audioUpdatePos() {
@@ -23,8 +23,6 @@
 	function audioReady() {
 		if (audio_inited == 0) {
 			initSubtitles();
-			audio.play();
-			finetime_start = new Date().getTime();
 			audio_inited = 1;
 		}
 	}
@@ -38,17 +36,15 @@
 	}
 
 	function audioStop() {
-		audio.stop();
+		audio.pause();
 	}
 
 	function audioPlay() {
 	}
 
-
 	function initAudio() {
-		audio = document.createElement('audio');
-		audio.setAttribute('src', 'song.ogg');
-		audio.addEventListener('canplaythrough', audioReady, false);
+		audio = document.getElementById('audio');	
+		audio.addEventListener('canplay', audioReady, false);
 		audio.addEventListener('seeked', audioSeeked, false);
 		audio.controls = false;
 		audio.load();
@@ -1806,7 +1802,6 @@
 
 			sharpkernel = new Array(-1, -1, 1,   -1, 6, 1,   -1, -1, 1);
 
-			Timeline.getGlobalInstance().loop(-1);
 		}
  
 		var effect_pointer = 0;
@@ -1834,8 +1829,16 @@
 			}
 		}
 
+		var firstframe = 0;
+
 	  	function drawScene() {
 			if (audio_inited == 1 && textureCount >= numTextures) {
+				if (firstframe == 0) {
+					firstframe = 1;
+					finetime_start = new Date().getTime();
+					audio.play();
+					Timeline.getGlobalInstance().loop(-1);
+				}
 				var ptimer = 0;
 				ptimer = finePos();
 				var frame_start_msec = 0;
@@ -1862,7 +1865,8 @@
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
  
-				finetime = (new Date().getTime()-finetime_start);
+				finetime = finePos();
+
 				var timefromstart = finetime;
 				
 				if (ptimer >= effects[effect_pointer+1] && ptimer < effects[effect_pointer+2]) {
@@ -1917,13 +1921,13 @@
 				// loaderi tähän
 				gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 				gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-				var loadercolor = 0.0;
-				gl.clearColor(loadercolor, loadercolor, loadercolor, 0.0);
+				var loadercolor = 0.21-((textureCount/numTextures)*0.21);
+				gl.clearColor(0.0, 0.0, loadercolor, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-				gl.clearColor(loadercolor, loadercolor, loadercolor, 0.0);
+				gl.clearColor(0.0, 0.0, loadercolor, 0.0);
 				gl.clear(gl.COLOR_BUFFER_BIT + gl.DEPTH_BUFFER_BIT);
 				gl.finish();
 
@@ -2021,6 +2025,17 @@
 			bottom: 0px;
 			left: 0px;
 			right: 0px;
+		}
+		#loader table {
+			width: 100%;
+			height: 100%;
+		}
+		#loader td {
+			vertical-align: middle;
+			text-align: center;
+		}
+		#loader img {
+			width: 90%;
 		}
 		#rewind {
 			position: absolute;
@@ -2186,13 +2201,17 @@
 </head> 
  
 <body onresize="window.location.reload(true);" onkeypress="if(isSpace(event)) toggleGUI();"> 
-	<div id="container"> 
+	<div id="container">
 		<div id="loader">
-			<img src = "videomoduuli.png" style="position:absolute; padding-top: 5%; width:100%; height:80%"/> 
-		</div> 
+			<table><tbody><tr><td>
+				<img src="videomoduuli.png" alt="mkultra" />
+			</td></tr></tbody></table>
+		</div>
 		<canvas id="bilocanvas" width="512" height="512"></canvas> 
 		<p id="subtitle"><span>The legend is always the same.</span></p> 
 		<div id="subtitle-text"><p><span>The legend is always the same.</span></p><p><span>Nine immortal men live on top of the mountain;</span> <span>from the highest peak they direct our world.</span> <span>They hold the secret to the conquest of death.</span> <span>They are more than forty thousand years old.</span></p><span></span><p><span>But they were once like ourselves -</span> <span>if others have succeeded conquering death,</span> <span>why must we accept it?</span> <span>I know where the immortals live,</span> <span>and how to obtain their secret.</span></p><br data-goto="#subtitle-text>p:first-child" /></div> 
 	</div> 
+
+	<audio id = "audio" src = "song.ogg"></audio>
 </body> 
 </html> 
